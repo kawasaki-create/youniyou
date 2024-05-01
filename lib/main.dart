@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:youniyou/root.dart';
+import 'package:youniyou/login_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -66,11 +67,27 @@ class _MyHomePageState extends State<MyHomePage> {
                   );
                 },
                 child: Text(
-                  '遷移する',
+                  'RootWidgetsへ',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                  );
+                },
+                child: Text(
+                  'LoginPageへ',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
                 ),
               ),
