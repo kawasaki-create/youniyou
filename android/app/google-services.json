@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "619382683864",
+    "project_id": "youniyou-76dca",
+    "storage_bucket": "youniyou-76dca.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:619382683864:android:002a392760a8df8722bfad",
+        "android_client_info": {
+          "package_name": "com.kawasakicreate.youniyou.youniyou"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmvhlUTPgfoGcTdA7hYKCH4q5cIKnWyWw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:youniyou/root.dart';
 import 'package:youniyou/login_page.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(ProviderScope(
+    child: MyApp(),
+  ));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+class MyApp extends HookConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authStateChanges = useStream(FirebaseAuth.instance.authStateChanges());
+    // print(useStream(FirebaseAuth.instance.authStateChanges()));
+
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
@@ -18,7 +27,14 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      // home: MyHomePage(
+      //   title: 'YouniYou',
+      // ),
+      home: authStateChanges.data == null
+          ? MyHomePage(
+              title: 'YouniYou',
+            )
+          : RootWidgets(),
     );
   }
 }
@@ -79,7 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                    MaterialPageRoute(builder: (context) => LoginPage()),
                   );
                 },
                 child: Text(
