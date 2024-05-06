@@ -30,7 +30,7 @@ class Home extends HookConsumerWidget {
         actions: [
           if (anonymousUser != null)
             IconButton(
-              icon: Icon(Icons.person_add),
+              icon: Icon(Icons.link),
               iconSize: 30,
               onPressed: () {
                 showDialog(

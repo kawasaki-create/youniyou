@@ -41,7 +41,8 @@ dependencies:
   firebase_core: 
   sign_in_with_apple:
   google_sign_in:
-  firebase_auth: 
+  firebase_auth:
+  cloud_firestore:
   sign_in_button:
   shared_preferences:
   crypto:
