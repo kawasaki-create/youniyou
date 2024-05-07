@@ -13,6 +13,7 @@ class Friends extends HookConsumerWidget {
     final user = FirebaseAuth.instance.currentUser;
     final _controller = useTextEditingController();
     final friends = useState([]);
+    final iconColor = useState(Colors.blue);
 
     String name = _controller.text;
 
@@ -29,7 +30,7 @@ class Friends extends HookConsumerWidget {
             onPressed: () {
               showModalBottomSheet(
                   context: context,
-                  isScrollControlled: true, // 画面半分よりも大きなモーダルの表示設定
+                  isScrollControlled: true,
                   builder: (BuildContext context) {
                     return Padding(
                         padding: EdgeInsets.only(
@@ -39,7 +40,6 @@ class Friends extends HookConsumerWidget {
                           height: 300,
                           child: Center(
                             child: Column(
-                              // mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget>[
                                 Text(''),
                                 Text(
@@ -55,8 +55,69 @@ class Friends extends HookConsumerWidget {
                                       height: 50,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: Colors.blue,
+                                        color: iconColor.value,
                                       ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: Text('アイコンの色を選択'),
+                                              content: SingleChildScrollView(
+                                                child: ListBody(
+                                                  children: <Widget>[
+                                                    GestureDetector(
+                                                      child: CircleAvatar(backgroundColor: Colors.blue),
+                                                      onTap: () {
+                                                        iconColor.value = Colors.blue;
+                                                        Navigator.of(context).pop();
+                                                      },
+                                                    ),
+                                                    GestureDetector(
+                                                      child: CircleAvatar(backgroundColor: Colors.red),
+                                                      onTap: () {
+                                                        iconColor.value = Colors.red;
+                                                        Navigator.of(context).pop();
+                                                      },
+                                                    ),
+                                                    GestureDetector(
+                                                      child: CircleAvatar(backgroundColor: Colors.yellow),
+                                                      onTap: () {
+                                                        iconColor.value = Colors.yellow;
+                                                        Navigator.of(context).pop();
+                                                      },
+                                                    ),
+                                                    GestureDetector(
+                                                      child: CircleAvatar(backgroundColor: Colors.green),
+                                                      onTap: () {
+                                                        iconColor.value = Colors.green;
+                                                        Navigator.of(context).pop();
+                                                      },
+                                                    ),
+                                                    GestureDetector(
+                                                      child: CircleAvatar(backgroundColor: Colors.orange),
+                                                      onTap: () {
+                                                        iconColor.value = Colors.orange;
+                                                        Navigator.of(context).pop();
+                                                      },
+                                                    ),
+                                                    GestureDetector(
+                                                      child: CircleAvatar(backgroundColor: Colors.pink),
+                                                      onTap: () {
+                                                        iconColor.value = Colors.pink;
+                                                        Navigator.of(context).pop();
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      },
+                                      child: Text('選択'),
                                     ),
                                   ],
                                 ),
@@ -84,7 +145,7 @@ class Friends extends HookConsumerWidget {
                                     ElevatedButton(
                                       onPressed: () async {
                                         // データベースに追加
-                                        await FirebaseFirestore.instance.collection('friends').add({'name': name, 'icon': '友達のアイコン', 'user_id': user?.uid});
+                                        await FirebaseFirestore.instance.collection('friends').add({'name': name, 'icon': iconColor.value.value, 'user_id': user?.uid});
                                         _controller.clear();
                                         Navigator.pop(context);
                                       },
@@ -116,10 +177,6 @@ class Friends extends HookConsumerWidget {
             return Text('Error: ${snapshot.error}');
           }
 
-          // if (snapshot.connectionState == ConnectionState.waiting) {
-          //   return Center(child: CircularProgressIndicator());
-          // }
-
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return Center(child: Text('友達がいません'));
           }
@@ -133,7 +190,7 @@ class Friends extends HookConsumerWidget {
                   height: 50,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.blue,
+                    color: Color(data['icon']),
                   ),
                 ),
                 title: Text(data['name']),
