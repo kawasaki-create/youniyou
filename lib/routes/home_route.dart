@@ -12,6 +12,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:youniyou/main.dart';
 import 'package:crypto/crypto.dart';
+import 'package:youniyou/todo.dart';
+
+final todoProvider = StateProvider<Todo>((ref) => Todo());
 
 class Home extends HookConsumerWidget {
   const Home({super.key});
@@ -20,6 +23,7 @@ class Home extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final anonymousUser = ref.watch(anonymousUserProvider);
     final user = FirebaseAuth.instance.currentUser;
+    final todo = ref.watch(todoProvider);
     const snackBar = SnackBar(
       content: Text("ログアウトします"),
     );
@@ -116,6 +120,9 @@ class Home extends HookConsumerWidget {
             ),
             Text(user?.uid ?? '未ログイン'),
             Text(anonymousUser?.uid ?? ''),
+            // デバッグ
+            Text('ここからデバッグのための予定追加確認'),
+            Text(todo.toMap.toString()),
 
             /// デバッグ用ボタン群
             // ElevatedButton(

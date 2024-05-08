@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:youniyou/login_page.dart';
 
-class Settings extends HookConsumerWidget {
-  const Settings({super.key});
+class SettingsRoute extends HookConsumerWidget {
+  const SettingsRoute({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
