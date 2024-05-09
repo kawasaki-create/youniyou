@@ -123,6 +123,12 @@ class Home extends HookConsumerWidget {
             // デバッグ
             Text('ここからデバッグのための予定追加確認'),
             Text(todo.toMap.toString()),
+            ElevatedButton(
+              onPressed: () {
+                print(todo.toMap());
+              },
+              child: Text('まっぷ'),
+            ),
 
             /// デバッグ用ボタン群
             // ElevatedButton(
