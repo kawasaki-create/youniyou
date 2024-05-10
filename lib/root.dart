@@ -75,9 +75,8 @@ class RootWidgets extends HookConsumerWidget {
                         value: selectedFriendId,
                         onChanged: (String? newValue) {
                           setState(() {
-                            selectedFriendId = newValue;
+                            todo.friendId = newValue;
                           });
-                          ref.read(todoProvider.notifier).state = todo.copyWith(friendId: newValue);
                         },
                         items: friends.map((friend) {
                           return DropdownMenuItem<String>(
@@ -106,20 +105,27 @@ class RootWidgets extends HookConsumerWidget {
                         onPressed: () async {
                           final date = await showDatePicker(
                             context: context,
-                            initialDate: startDateTime ?? DateTime.now(),
+                            initialDate: todo.startDateTime ?? DateTime.now(),
                             firstDate: DateTime.now(),
                             lastDate: DateTime.now().add(Duration(days: 365)),
                           );
+
                           if (date != null) {
                             final time = await showTimePicker(
                               context: context,
-                              initialTime: TimeOfDay.fromDateTime(startDateTime ?? DateTime.now()),
+                              initialTime: TimeOfDay.fromDateTime(todo.startDateTime ?? DateTime.now()),
                             );
+
                             if (time != null) {
                               setState(() {
-                                startDateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+                                todo.startDateTime = DateTime(
+                                  date.year,
+                                  date.month,
+                                  date.day,
+                                  time.hour,
+                                  time.minute,
+                                );
                               });
-                              ref.read(todoProvider.notifier).state = todo.copyWith(startDateTime: startDateTime);
                             }
                           }
                         },
@@ -142,9 +148,14 @@ class RootWidgets extends HookConsumerWidget {
                             );
                             if (time != null) {
                               setState(() {
-                                endDateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+                                todo.endDateTime = DateTime(
+                                  date.year,
+                                  date.month,
+                                  date.day,
+                                  time.hour,
+                                  time.minute,
+                                );
                               });
-                              ref.read(todoProvider.notifier).state = todo.copyWith(endDateTime: endDateTime);
                             }
                           }
                         },
@@ -155,7 +166,7 @@ class RootWidgets extends HookConsumerWidget {
                       TextFormField(
                         initialValue: todo.description,
                         onChanged: (value) {
-                          ref.read(todoProvider.notifier).state = todo.copyWith(description: value);
+                          todo.description = value;
                         },
                       ),
                     ],
