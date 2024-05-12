@@ -55,6 +55,7 @@ class RootWidgets extends HookConsumerWidget {
       final user = FirebaseAuth.instance.currentUser;
       final friendsSnapshot = await FirebaseFirestore.instance.collection('friends').where('user_id', isEqualTo: user?.uid).get();
       final friends = friendsSnapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+      todo.id = user?.uid;
 
       String? selectedFriendId = todo.friendId;
       DateTime? startDateTime = todo.startDateTime;
@@ -72,7 +73,7 @@ class RootWidgets extends HookConsumerWidget {
                     children: <Widget>[
                       Text('対象者を選択：'),
                       DropdownButton<String>(
-                        value: selectedFriendId,
+                        value: todo.friendId,
                         onChanged: (String? newValue) {
                           setState(() {
                             todo.friendId = newValue;
@@ -129,7 +130,7 @@ class RootWidgets extends HookConsumerWidget {
                             }
                           }
                         },
-                        child: Text(startDateTime != null ? '${startDateTime!.year}/${startDateTime!.month}/${startDateTime!.day} ${startDateTime!.hour}:${startDateTime!.minute}' : '開始日時を選択'),
+                        child: Text(todo.startDateTime != null ? '${todo.startDateTime!.year}/${todo.startDateTime!.month}/${todo.startDateTime!.day} ${todo.startDateTime!.hour}:${todo.startDateTime!.minute}' : '開始日時を選択'),
                       ),
                       SizedBox(height: 16),
                       Text('終了日時：'),
@@ -159,7 +160,7 @@ class RootWidgets extends HookConsumerWidget {
                             }
                           }
                         },
-                        child: Text(endDateTime != null ? '${endDateTime!.year}/${endDateTime!.month}/${endDateTime!.day} ${endDateTime!.hour}:${endDateTime!.minute}' : '終了日時を選択'),
+                        child: Text(todo.endDateTime != null ? '${todo.endDateTime!.year}/${todo.endDateTime!.month}/${todo.endDateTime!.day} ${todo.endDateTime!.hour}:${todo.endDateTime!.minute}' : '終了日時を選択'),
                       ),
                       SizedBox(height: 16),
                       Text('内容：'),

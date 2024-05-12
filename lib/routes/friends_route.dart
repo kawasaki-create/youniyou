@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:youniyou/chats.dart';
+import 'package:youniyou/plan.dart';
 
 class FriendModal extends HookConsumerWidget {
   final String? friendId;
@@ -212,88 +213,104 @@ class Friends extends HookConsumerWidget {
             children: snapshot.data!.docs.map((DocumentSnapshot document) {
               Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
               return GestureDetector(
-                onTap: () {
-                  // トーク画面に遷移
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ChatScreen(friendId: document.id, friendName: data['name']),
-                    ),
-                  );
-                },
-                child: ListTile(
-                  leading: GestureDetector(
-                    onTap: () {
-                      // 友達編集モーダルを表示
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (BuildContext context) {
-                          return FriendModal(
-                            friendId: document.id,
-                            friendName: data['name'],
-                            friendIcon: data['icon'],
-                          );
-                        },
-                      );
-                    },
-                    child: Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(data['icon']),
+                  onTap: () {
+                    // トーク画面に遷移
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChatScreen(friendId: document.id, friendName: data['name']),
+                      ),
+                    );
+                  },
+                  child: ListTile(
+                    leading: GestureDetector(
+                      onTap: () {
+                        // 友達編集モーダルを表示
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (BuildContext context) {
+                            return FriendModal(
+                              friendId: document.id,
+                              friendName: data['name'],
+                              friendIcon: data['icon'],
+                            );
+                          },
+                        );
+                      },
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(data['icon']),
+                        ),
                       ),
                     ),
-                  ),
-                  title: Text(data['name']),
-                  subtitle: FutureBuilder(
-                    future: FirebaseFirestore.instance.collection('chats').doc(document.id).collection('messages').orderBy('timestamp', descending: true).limit(1).get().then((snapshot) => snapshot.docs.isNotEmpty ? snapshot.docs.first : null),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        if (snapshot.data != null) {
-                          Map<String, dynamic> messageData = snapshot.data!.data()! as Map<String, dynamic>;
-                          return Text(messageData['text']);
+                    title: Text(data['name']),
+                    subtitle: FutureBuilder(
+                      future: FirebaseFirestore.instance.collection('chats').doc(document.id).collection('messages').orderBy('timestamp', descending: true).limit(1).get().then((snapshot) => snapshot.docs.isNotEmpty ? snapshot.docs.first : null),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          if (snapshot.data != null) {
+                            Map<String, dynamic> messageData = snapshot.data!.data()! as Map<String, dynamic>;
+                            return Text(messageData['text'] ?? '');
+                          } else {
+                            return Text('トークを始めましょう');
+                          }
                         } else {
-                          return Text('トークを始めましょう');
+                          return Text('...');
                         }
-                      } else {
-                        return Text('...');
-                      }
-                    },
-                  ),
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Text('友達の削除'),
-                            content: Text('本当に削除しますか？もどせません'),
-                            actions: [
-                              TextButton(
-                                child: Text('キャンセル'),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
+                      },
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            // 予定一覧画面に遷移
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Plan(friendId: document.id),
                               ),
-                              TextButton(
-                                child: Text('OK'),
-                                onPressed: () {
-                                  // 友達を削除
-                                  FirebaseFirestore.instance.collection('friends').doc(document.id).delete();
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-              );
+                            );
+                          },
+                          child: Text('予定一覧'),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text('友達の削除'),
+                                  content: Text('本当に削除しますか？もどせません'),
+                                  actions: [
+                                    TextButton(
+                                      child: Text('キャンセル'),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    TextButton(
+                                      child: Text('OK'),
+                                      onPressed: () {
+                                        // 友達を削除
+                                        FirebaseFirestore.instance.collection('friends').doc(document.id).delete();
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ));
             }).toList(),
           );
         },

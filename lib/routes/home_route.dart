@@ -121,14 +121,14 @@ class Home extends HookConsumerWidget {
             Text(user?.uid ?? '未ログイン'),
             Text(anonymousUser?.uid ?? ''),
             // デバッグ
-            Text('ここからデバッグのための予定追加確認'),
-            Text(todo.toMap.toString()),
-            ElevatedButton(
-              onPressed: () {
-                print(todo.toMap());
-              },
-              child: Text('まっぷ'),
-            ),
+            // Text('ここからデバッグのための予定追加確認'),
+            // Text(todo.toMap.toString()),
+            // ElevatedButton(
+            //   onPressed: () {
+            //     print(todo.toMap());
+            //   },
+            //   child: Text('まっぷ'),
+            // ),
 
             /// デバッグ用ボタン群
             // ElevatedButton(
