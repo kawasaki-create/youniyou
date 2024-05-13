@@ -49,6 +49,8 @@ dependencies:
   intl: 
   firebase_storage:
   image_picker:
+  http:
+  path_provider:
 
 dev_dependencies:
   flutter_test:
