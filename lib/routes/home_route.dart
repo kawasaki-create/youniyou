@@ -13,6 +13,9 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:youniyou/main.dart';
 import 'package:crypto/crypto.dart';
 import 'package:youniyou/todo.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'package:youniyou/plan.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 final todoProvider = StateProvider<Todo>((ref) => Todo());
 
@@ -23,10 +26,27 @@ class Home extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final anonymousUser = ref.watch(anonymousUserProvider);
     final user = FirebaseAuth.instance.currentUser;
+    final selectedDate = useState(DateTime.now());
+    final calendarFormat = useState(CalendarFormat.month);
     final todo = ref.watch(todoProvider);
     const snackBar = SnackBar(
       content: Text("ログアウトします"),
     );
+
+    Future<void> _onDaySelected(DateTime day, DateTime focusedDay) async {
+      selectedDate.value = day;
+      final events = await FirebaseFirestore.instance.collection('todo').where('startDateTime', isLessThanOrEqualTo: day).where('endDateTime', isGreaterThanOrEqualTo: day).get();
+
+      if (events.docs.isNotEmpty) {
+        final event = events.docs.first;
+        final friendId = event['friendId'];
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => Plan(friendId: friendId)),
+        );
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text('スケジュール'),
@@ -120,6 +140,32 @@ class Home extends HookConsumerWidget {
             ),
             Text(user?.uid ?? '未ログイン'),
             Text(anonymousUser?.uid ?? ''),
+            TableCalendar(
+              firstDay: DateTime.utc(2023, 1, 1),
+              lastDay: DateTime.utc(2030, 12, 31),
+              focusedDay: selectedDate.value,
+              calendarFormat: calendarFormat.value,
+              onFormatChanged: (format) {
+                calendarFormat.value = format;
+              },
+              eventLoader: (day) {
+                return []; // ここで空のリストを返すようにします
+              },
+              onDaySelected: (selectedDay, focusedDay) {
+                selectedDate.value = selectedDay;
+                _navigateToEventDetails(selectedDay, context);
+              },
+              calendarStyle: CalendarStyle(
+                todayDecoration: BoxDecoration(
+                  color: Colors.blue,
+                  shape: BoxShape.circle,
+                ),
+                selectedDecoration: BoxDecoration(
+                  color: Colors.blue,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
             // デバッグ
             // Text('ここからデバッグのための予定追加確認'),
             // Text(todo.toMap.toString()),
@@ -160,6 +206,19 @@ class Home extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _navigateToEventDetails(DateTime selectedDay, BuildContext context) async {
+    final events = await FirebaseFirestore.instance.collection('todo').where('startDateTime', isLessThanOrEqualTo: selectedDay).where('endDateTime', isGreaterThanOrEqualTo: selectedDay).get();
+
+    if (events.docs.isNotEmpty) {
+      final event = events.docs.first;
+      final friendId = event['friendId'];
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => Plan(friendId: friendId)),
+      );
+    }
   }
 
   String generateNonce([int length = 32]) {

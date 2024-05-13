@@ -176,43 +176,45 @@ class Friends extends HookConsumerWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     // Firestoreからデータを取得するStream
-    final Stream<QuerySnapshot> _friendsStream = FirebaseFirestore.instance.collection('friends').where('user_id', isEqualTo: user?.uid).snapshots();
+    final _friendsStream = useMemoized(() {
+      return user != null ? FirebaseFirestore.instance.collection('friends').where('user_id', isEqualTo: user.uid).snapshots() : const Stream.empty();
+    }, [user?.uid]);
+
+    final snapshot = useStream(_friendsStream);
+
+    if (snapshot.hasError) {
+      return Text('Error: ${snapshot.error}');
+    }
+
+    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+      return Center(child: Text('友達がいません'));
+    }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('友達'),
-        backgroundColor: Colors.cyan[100],
-        actions: [
-          IconButton(
-            icon: Icon(Icons.person_add_alt_1_rounded),
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (BuildContext context) {
-                  return FriendModal();
-                },
-              );
-            },
-            iconSize: 30,
-          ),
-        ],
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: _friendsStream,
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          }
-
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('友達がいません'));
-          }
-
-          return ListView(
-            children: snapshot.data!.docs.map((DocumentSnapshot document) {
-              Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
-              return GestureDetector(
+        appBar: AppBar(
+          title: Text('友達'),
+          backgroundColor: Colors.cyan[100],
+          actions: [
+            IconButton(
+              icon: Icon(Icons.person_add_alt_1_rounded),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (BuildContext context) {
+                    return FriendModal();
+                  },
+                );
+              },
+              iconSize: 30,
+            ),
+          ],
+        ),
+        body: ListView(
+          children: snapshot.data!.docs
+              .map((DocumentSnapshot document) {
+                Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+                return GestureDetector(
                   onTap: () {
                     // トーク画面に遷移
                     Navigator.push(
@@ -254,7 +256,13 @@ class Friends extends HookConsumerWidget {
                         if (snapshot.hasData) {
                           if (snapshot.data != null) {
                             Map<String, dynamic> messageData = snapshot.data!.data()! as Map<String, dynamic>;
-                            return Text(messageData['text'] ?? '');
+                            if (messageData.containsKey('imageUrl')) {
+                              return Text('画像を送信しました');
+                            } else {
+                              String text = messageData['text'] ?? '';
+                              List<String> lines = text.split('\n');
+                              return Text(lines.isNotEmpty ? lines.first : '');
+                            }
                           } else {
                             return Text('トークを始めましょう');
                           }
@@ -310,11 +318,11 @@ class Friends extends HookConsumerWidget {
                         ),
                       ],
                     ),
-                  ));
-            }).toList(),
-          );
-        },
-      ),
-    );
+                  ),
+                );
+              })
+              .cast<Widget>()
+              .toList(),
+        ));
   }
 }

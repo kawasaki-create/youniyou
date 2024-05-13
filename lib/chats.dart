@@ -22,15 +22,12 @@ class ChatScreen extends HookConsumerWidget {
     final messageController = useTextEditingController();
     final scrollController = useScrollController();
 
-    Future<void> _saveImage(String imageUrl) async {
-      final response = await http.get(Uri.parse(imageUrl));
-      final documentDirectory = await getApplicationDocumentsDirectory();
-      final file = File('${documentDirectory.path}/image_${DateTime.now().millisecondsSinceEpoch}.png');
-      file.writeAsBytesSync(response.bodyBytes);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('画像を保存しました')),
-      );
-    }
+    // Firestoreからデータを取得するStream
+    final _messagesStream = useMemoized(() {
+      return FirebaseFirestore.instance.collection('chats').doc(friendId).collection('messages').orderBy('timestamp').snapshots();
+    }, [friendId]);
+
+    final snapshot = useStream(_messagesStream);
 
     void _deleteMessage(String messageId) {
       FirebaseFirestore.instance.collection('chats').doc(friendId).collection('messages').doc(messageId).delete();
@@ -63,6 +60,13 @@ class ChatScreen extends HookConsumerWidget {
       );
     }
 
+    if (snapshot.hasError) {
+      return Text('Error: ${snapshot.error}');
+    }
+
+    final messages = snapshot.data?.docs ?? [];
+    DateTime? previousDate;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(friendName),
@@ -71,146 +75,118 @@ class ChatScreen extends HookConsumerWidget {
       body: Column(
         children: [
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('chats').doc(friendId).collection('messages').orderBy('timestamp', descending: true).snapshots(),
-              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                }
+            child: ListView.builder(
+              controller: scrollController,
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+                final message = messages[index];
+                final data = message.data()! as Map<String, dynamic>;
+                final isCurrentUser = data['userId'] == user?.uid;
+                final timestamp = data['timestamp'] as Timestamp?;
+                final messageDate = timestamp?.toDate();
 
-                final messages = snapshot.data?.docs ?? [];
-
-                DateTime? previousDate;
-                bool isFirstMessageOfDate = true;
-
-                return ListView.builder(
-                  reverse: true,
-                  controller: scrollController,
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final message = messages[index];
-                    final data = message.data()! as Map<String, dynamic>;
-                    final isCurrentUser = data['userId'] == user?.uid;
-                    final timestamp = data['timestamp'] as Timestamp?;
-                    final messageDate = timestamp?.toDate();
-
-                    final isNewDate = messageDate?.day != previousDate?.day;
-                    final dateWidget = messageDate == null
-                        ? SizedBox.shrink()
-                        : isNewDate && isFirstMessageOfDate
-                            ? Container(
-                                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                                margin: EdgeInsets.only(bottom: 8),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Text(
-                                  '${messageDate.month}/${messageDate.day}(${_getWeekday(messageDate.weekday)})',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                              )
-                            : SizedBox.shrink();
-
-                    if (isNewDate) {
-                      previousDate = messageDate;
-                      isFirstMessageOfDate = true;
-                    } else {
-                      isFirstMessageOfDate = false;
-                    }
-
-                    if (data.containsKey('imageUrl')) {
-                      return Column(
-                        children: [
-                          dateWidget,
-                          GestureDetector(
-                            onLongPress: () {
-                              showModalBottomSheet(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return SafeArea(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        ListTile(
-                                          leading: Icon(Icons.save),
-                                          title: Text('画像を保存'),
-                                          onTap: () {
-                                            _saveImage(data['imageUrl']);
-                                            Navigator.of(context).pop();
-                                          },
-                                        ),
-                                        ListTile(
-                                          leading: Icon(Icons.delete),
-                                          title: Text('画像を削除'),
-                                          onTap: () {
-                                            Navigator.of(context).pop();
-                                            _showDeleteDialog(message.id, true);
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                            child: Align(
-                              alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
-                              child: Container(
-                                padding: EdgeInsets.all(10),
-                                margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                                child: Column(
-                                  crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      messageDate != null ? DateFormat('HH:mm').format(messageDate) : '',
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                    SizedBox(height: 4),
-                                    Image.network(data['imageUrl']),
-                                  ],
-                                ),
-                              ),
+                final isNewDate = messageDate?.day != previousDate?.day;
+                final dateWidget = messageDate == null
+                    ? SizedBox.shrink()
+                    : isNewDate
+                        ? Container(
+                            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                            margin: EdgeInsets.only(bottom: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                          ),
-                        ],
-                      );
-                    } else {
-                      return Column(
-                        children: [
-                          dateWidget,
-                          GestureDetector(
-                            onLongPress: () {
-                              _showDeleteDialog(message.id, false);
-                            },
-                            child: Align(
-                              alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
-                              child: Container(
-                                padding: EdgeInsets.all(10),
-                                margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                                decoration: BoxDecoration(
-                                  color: isCurrentUser ? Colors.blue[100] : Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
+                            child: Text(
+                              '${messageDate.month}/${messageDate.day}(${_getWeekday(messageDate.weekday)})',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          )
+                        : SizedBox.shrink();
+
+                previousDate = messageDate;
+
+                if (data.containsKey('imageUrl')) {
+                  return Column(
+                    children: [
+                      dateWidget,
+                      GestureDetector(
+                        onLongPress: () {
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return SafeArea(
+                                child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(
-                                      messageDate != null ? DateFormat('HH:mm').format(messageDate) : '',
-                                      style: TextStyle(fontSize: 12),
+                                    ListTile(
+                                      leading: Icon(Icons.delete),
+                                      title: Text('画像を削除'),
+                                      onTap: () {
+                                        Navigator.of(context).pop();
+                                        _showDeleteDialog(message.id, true);
+                                      },
                                     ),
-                                    SizedBox(width: 8),
-                                    Flexible(child: Text(data['text'])),
                                   ],
                                 ),
-                              ),
+                              );
+                            },
+                          );
+                        },
+                        child: Align(
+                          alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
+                          child: Container(
+                            padding: EdgeInsets.all(10),
+                            margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                            child: Column(
+                              crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  messageDate != null ? DateFormat('HH:mm').format(messageDate) : '',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                SizedBox(height: 4),
+                                Image.network(data['imageUrl']),
+                              ],
                             ),
                           ),
-                        ],
-                      );
-                    }
-                  },
-                );
+                        ),
+                      ),
+                    ],
+                  );
+                } else {
+                  return Column(
+                    children: [
+                      dateWidget,
+                      GestureDetector(
+                        onLongPress: () {
+                          _showDeleteDialog(message.id, false);
+                        },
+                        child: Align(
+                          alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
+                          child: Container(
+                            padding: EdgeInsets.all(10),
+                            margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: isCurrentUser ? Colors.blue[100] : Colors.grey[200],
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  messageDate != null ? DateFormat('HH:mm').format(messageDate) : '',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                SizedBox(width: 8),
+                                Flexible(child: Text(data['text'])),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
               },
             ),
           ),
