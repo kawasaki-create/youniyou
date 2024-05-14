@@ -31,12 +31,12 @@ class Home extends HookConsumerWidget {
 
     useEffect(() {
       Future.microtask(() async {
-        final loadedEvents = await _getAllEvents();
+        final loadedEvents = await _getAllEvents(user!.uid);
         events.value = loadedEvents;
         isLoading.value = false;
       });
       return null;
-    }, []);
+    }, [user]);
 
     if (isLoading.value) {
       return Center(child: CircularProgressIndicator());
@@ -133,19 +133,40 @@ class Home extends HookConsumerWidget {
         monthViewSettings: MonthViewSettings(
           appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
         ),
+        appointmentBuilder: (BuildContext context, CalendarAppointmentDetails details) {
+          final Meeting meeting = details.appointments.first;
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Plan(friendId: meeting.friendId, selectedDate: meeting.from),
+                ),
+              );
+            },
+            child: Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: meeting.background,
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Future<List<Meeting>> _getAllEvents() async {
-    final snapshot = await FirebaseFirestore.instance.collection('todo').get();
+  Future<List<Meeting>> _getAllEvents(String uid) async {
+    final snapshot = await FirebaseFirestore.instance.collection('todo').where('id', isEqualTo: uid).get();
     final events = <Meeting>[];
 
     for (var doc in snapshot.docs) {
       final data = doc.data();
       final startDateTime = data['startDateTime'] != null ? (data['startDateTime'] as Timestamp).toDate() : null;
       final endDateTime = data['endDateTime'] != null ? (data['endDateTime'] as Timestamp).toDate() : null;
-      final eventName = data['eventName'];
+      final eventName = data['description'];
       final friendId = data['friendId'] as String?;
 
       if (startDateTime != null && endDateTime != null && friendId != null) {
@@ -156,6 +177,7 @@ class Home extends HookConsumerWidget {
           endDateTime,
           Color(friendData?['icon'] ?? 0xFF0000FF),
           false,
+          friendId,
         ));
       }
     }
@@ -340,13 +362,14 @@ class Home extends HookConsumerWidget {
 }
 
 class Meeting {
-  Meeting(this.eventName, this.from, this.to, this.background, this.isAllDay);
+  Meeting(this.eventName, this.from, this.to, this.background, this.isAllDay, this.friendId);
 
   String eventName;
   DateTime from;
   DateTime to;
   Color background;
   bool isAllDay;
+  String friendId;
 }
 
 class MeetingDataSource extends CalendarDataSource {
