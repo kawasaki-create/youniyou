@@ -13,7 +13,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:youniyou/main.dart';
 import 'package:crypto/crypto.dart';
 import 'package:youniyou/todo.dart';
-import 'package:table_calendar/table_calendar.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:youniyou/plan.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -26,25 +26,20 @@ class Home extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final anonymousUser = ref.watch(anonymousUserProvider);
     final user = FirebaseAuth.instance.currentUser;
-    final selectedDate = useState(DateTime.now());
-    final calendarFormat = useState(CalendarFormat.month);
-    final todo = ref.watch(todoProvider);
-    const snackBar = SnackBar(
-      content: Text("ログアウトします"),
-    );
+    final events = useState<List<Meeting>>([]);
+    final isLoading = useState(true);
 
-    Future<void> _onDaySelected(DateTime day, DateTime focusedDay) async {
-      selectedDate.value = day;
-      final events = await FirebaseFirestore.instance.collection('todo').where('startDateTime', isLessThanOrEqualTo: day).where('endDateTime', isGreaterThanOrEqualTo: day).get();
+    useEffect(() {
+      Future.microtask(() async {
+        final loadedEvents = await _getAllEvents();
+        events.value = loadedEvents;
+        isLoading.value = false;
+      });
+      return null;
+    }, []);
 
-      if (events.docs.isNotEmpty) {
-        final event = events.docs.first;
-        final friendId = event['friendId'];
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => Plan(friendId: friendId)),
-        );
-      }
+    if (isLoading.value) {
+      return Center(child: CircularProgressIndicator());
     }
 
     return Scaffold(
@@ -58,36 +53,37 @@ class Home extends HookConsumerWidget {
               iconSize: 30,
               onPressed: () {
                 showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      if (Platform.isAndroid)
-                        return AlertDialog(
-                          title: Text('Googleアカウントでログインする'),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ElevatedButton(
-                                onPressed: anonymousUser != null ? () => _linkAccount(context, ref) : null,
-                                child: Text('アカウントリンク'),
-                              ),
-                            ],
-                          ),
-                        );
-                      if (Platform.isIOS)
-                        return CupertinoAlertDialog(
-                          title: Text('Appleアカウントでログインする'),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ElevatedButton(
-                                onPressed: anonymousUser != null ? () => _linkAccount(context, ref) : null,
-                                child: Text('アカウントリンク'),
-                              ),
-                            ],
-                          ),
-                        );
-                      return Container();
-                    });
+                  context: context,
+                  builder: (BuildContext context) {
+                    if (Platform.isAndroid)
+                      return AlertDialog(
+                        title: Text('Googleアカウントでログインする'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ElevatedButton(
+                              onPressed: anonymousUser != null ? () => _linkAccount(context, ref) : null,
+                              child: Text('アカウントリンク'),
+                            ),
+                          ],
+                        ),
+                      );
+                    if (Platform.isIOS)
+                      return CupertinoAlertDialog(
+                        title: Text('Appleアカウントでログインする'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ElevatedButton(
+                              onPressed: anonymousUser != null ? () => _linkAccount(context, ref) : null,
+                              child: Text('アカウントリンク'),
+                            ),
+                          ],
+                        ),
+                      );
+                    return Container();
+                  },
+                );
               },
             ),
           IconButton(
@@ -108,12 +104,12 @@ class Home extends HookConsumerWidget {
                         TextButton(
                           onPressed: () async {
                             // ログアウト処理
-                            // 内部で保持しているログイン情報等が初期化される
-                            // （現時点ではログアウト時はこの処理を呼び出せばOKと、思うぐらいで大丈夫です）
                             await FirebaseAuth.instance.signOut();
 
                             // snackBarを表示し、非同期的に完了するまで待機
-                            await ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                            await ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("ログアウトします")),
+                            );
 
                             // ログイン画面に遷移＋チャット画面を破棄
                             Navigator.of(context).pushReplacement(
@@ -131,94 +127,48 @@ class Home extends HookConsumerWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Center(
-              child: Text('スケジュール'),
-            ),
-            Text(user?.uid ?? '未ログイン'),
-            Text(anonymousUser?.uid ?? ''),
-            TableCalendar(
-              firstDay: DateTime.utc(2023, 1, 1),
-              lastDay: DateTime.utc(2030, 12, 31),
-              focusedDay: selectedDate.value,
-              calendarFormat: calendarFormat.value,
-              onFormatChanged: (format) {
-                calendarFormat.value = format;
-              },
-              eventLoader: (day) {
-                return []; // ここで空のリストを返すようにします
-              },
-              onDaySelected: (selectedDay, focusedDay) {
-                selectedDate.value = selectedDay;
-                _navigateToEventDetails(selectedDay, context);
-              },
-              calendarStyle: CalendarStyle(
-                todayDecoration: BoxDecoration(
-                  color: Colors.blue,
-                  shape: BoxShape.circle,
-                ),
-                selectedDecoration: BoxDecoration(
-                  color: Colors.blue,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-            // デバッグ
-            // Text('ここからデバッグのための予定追加確認'),
-            // Text(todo.toMap.toString()),
-            // ElevatedButton(
-            //   onPressed: () {
-            //     print(todo.toMap());
-            //   },
-            //   child: Text('まっぷ'),
-            // ),
-
-            /// デバッグ用ボタン群
-            // ElevatedButton(
-            //   onPressed: anonymousUser != null ? () => _linkAccount(context, ref) : null,
-            //   child: Text('アカウントリンク'),
-            // ),
-            // ElevatedButton(
-            //   onPressed: user != null ? () => _unlinkGoogleAccount(context, ref) : null,
-            //   child: Text('Googleアカウントの紐付けを解除'),
-            // ),
-            // ElevatedButton(
-            //   onPressed: () async {
-            //     await user?.delete();
-            //     Navigator.of(context).pushReplacement(
-            //       MaterialPageRoute(builder: (context) {
-            //         return LoginPage();
-            //       }),
-            //     );
-            //   },
-            //   child: Text('アカウント削除'),
-            // ),
-            // ElevatedButton(
-            //   onPressed: () {
-            //     Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => MyApp()), (route) => false);
-            //   },
-            //   child: Text('最初の画面へ'),
-            // )
-          ],
+      body: SfCalendar(
+        view: CalendarView.month,
+        dataSource: MeetingDataSource(events.value),
+        monthViewSettings: MonthViewSettings(
+          appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
         ),
       ),
     );
   }
 
-  Future<void> _navigateToEventDetails(DateTime selectedDay, BuildContext context) async {
-    final events = await FirebaseFirestore.instance.collection('todo').where('startDateTime', isLessThanOrEqualTo: selectedDay).where('endDateTime', isGreaterThanOrEqualTo: selectedDay).get();
+  Future<List<Meeting>> _getAllEvents() async {
+    final snapshot = await FirebaseFirestore.instance.collection('todo').get();
+    final events = <Meeting>[];
 
-    if (events.docs.isNotEmpty) {
-      final event = events.docs.first;
-      final friendId = event['friendId'];
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => Plan(friendId: friendId)),
-      );
+    for (var doc in snapshot.docs) {
+      final data = doc.data();
+      final startDateTime = data['startDateTime'] != null ? (data['startDateTime'] as Timestamp).toDate() : null;
+      final endDateTime = data['endDateTime'] != null ? (data['endDateTime'] as Timestamp).toDate() : null;
+      final eventName = data['eventName'];
+      final friendId = data['friendId'] as String?;
+
+      if (startDateTime != null && endDateTime != null && friendId != null) {
+        final friendData = await _getFriendData(friendId);
+        events.add(Meeting(
+          eventName ?? '予定なし',
+          startDateTime,
+          endDateTime,
+          Color(friendData?['icon'] ?? 0xFF0000FF),
+          false,
+        ));
+      }
     }
+
+    return events;
+  }
+
+  Future<Map<String, dynamic>?> _getFriendData(String friendId) async {
+    final friendDoc = await FirebaseFirestore.instance.collection('friends').doc(friendId).get();
+    if (friendDoc.exists) {
+      return friendDoc.data();
+    }
+    return null;
   }
 
   String generateNonce([int length = 32]) {
@@ -386,5 +336,46 @@ class Home extends HookConsumerWidget {
         );
       }
     }
+  }
+}
+
+class Meeting {
+  Meeting(this.eventName, this.from, this.to, this.background, this.isAllDay);
+
+  String eventName;
+  DateTime from;
+  DateTime to;
+  Color background;
+  bool isAllDay;
+}
+
+class MeetingDataSource extends CalendarDataSource {
+  MeetingDataSource(List<Meeting> source) {
+    appointments = source;
+  }
+
+  @override
+  DateTime getStartTime(int index) {
+    return appointments![index].from;
+  }
+
+  @override
+  DateTime getEndTime(int index) {
+    return appointments![index].to;
+  }
+
+  @override
+  String getSubject(int index) {
+    return appointments![index].eventName;
+  }
+
+  @override
+  Color getColor(int index) {
+    return appointments![index].background;
+  }
+
+  @override
+  bool isAllDay(int index) {
+    return appointments![index].isAllDay;
   }
 }
