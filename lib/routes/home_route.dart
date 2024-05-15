@@ -17,8 +17,6 @@ import 'package:youniyou/login_page.dart';
 import 'package:youniyou/main.dart';
 import 'package:youniyou/todo.dart';
 
-final todoProvider = StateProvider<Todo>((ref) => Todo());
-
 class Home extends HookConsumerWidget {
   const Home({super.key});
 
@@ -116,10 +114,6 @@ class Home extends HookConsumerWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('todo').where('id', isEqualTo: user.uid).snapshots(),
         builder: (context, snapshot) {
-          // if (snapshot.connectionState == ConnectionState.waiting) {
-          //   return Center(child: CircularProgressIndicator());
-          // }
-
           if (snapshot.hasError) {
             print('エラーが発生しました: ${snapshot.error}');
             return Center(child: Text('エラーが発生しました: ${snapshot.error}'));
@@ -129,6 +123,8 @@ class Home extends HookConsumerWidget {
             return Center(child: Text('予定がありません'));
           }
 
+          final uniqueEvents = <String, Meeting>{};
+          final eventsByDate = <DateTime, List<Meeting>>{};
           final events = snapshot.data!.docs.map((doc) async {
             final data = doc.data() as Map<String, dynamic>? ?? {};
             final startDateTime = data['startDateTime'] != null ? (data['startDateTime'] as Timestamp).toDate() : DateTime.now();
@@ -138,74 +134,136 @@ class Home extends HookConsumerWidget {
             final friendData = await _getFriendData(friendId);
             final friendName = friendData?['name'] ?? '友達';
 
-            return Meeting(
-              eventName,
-              startDateTime,
-              endDateTime,
-              Colors.blue,
-              false,
-              friendName,
-            );
+            final eventKey = '$eventName|$startDateTime|$endDateTime';
+            if (!uniqueEvents.containsKey(eventKey)) {
+              uniqueEvents[eventKey] = Meeting(
+                eventName,
+                startDateTime,
+                endDateTime,
+                Colors.blue,
+                false,
+                friendName,
+              );
+            }
+
+            final date = DateTime(startDateTime.year, startDateTime.month, startDateTime.day);
+            eventsByDate.putIfAbsent(date, () => []).add(uniqueEvents[eventKey]!);
+
+            return uniqueEvents[eventKey]!;
           }).toList();
 
           return FutureBuilder<List<Meeting>>(
             future: Future.wait(events),
             builder: (context, snapshot) {
-              // if (snapshot.connectionState == ConnectionState.waiting) {
-              //   return Center(child: CircularProgressIndicator());
-              // }
-
               if (snapshot.hasError) {
                 return Center(child: Text('エラーが発生しました: ${snapshot.error}'));
               }
 
               final events = snapshot.data ?? [];
+              final dataSource = MeetingDataSource(events);
 
               return SfCalendar(
                 view: CalendarView.month,
-                dataSource: MeetingDataSource(events),
+                dataSource: dataSource,
                 monthViewSettings: MonthViewSettings(
                   appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
                 ),
                 appointmentBuilder: (BuildContext context, CalendarAppointmentDetails details) {
-                  final Meeting meeting = details.appointments.first;
-                  return GestureDetector(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Text(meeting.eventName),
-                            content: Text(
-                              '開始: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(meeting.from)}\n'
-                              '終了: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(meeting.to)}\n'
-                              '友達: ${meeting.friendId}',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: Text('閉じる'),
+                  final date = DateTime(details.date.year, details.date.month, details.date.day);
+                  final dailyEvents = eventsByDate[date] ?? [];
+
+                  if (dailyEvents.length > 3) {
+                    return GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('予定一覧'),
+                              content: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: dailyEvents.map((meeting) {
+                                    return ListTile(
+                                      title: Text(meeting.eventName),
+                                      subtitle: Text(
+                                        '開始: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(meeting.from)}\n'
+                                        '終了: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(meeting.to)}\n'
+                                        '友達: ${meeting.friendId}',
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
                               ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: meeting.background,
-                        borderRadius: BorderRadius.circular(4),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text('閉じる'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Center(
+                          child: Text(
+                            '全て表示',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
                       ),
-                      child: Text(
-                        meeting.eventName,
-                        style: TextStyle(color: Colors.white),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  );
+                    );
+                  } else {
+                    return Column(
+                      children: dailyEvents.map((meeting) {
+                        return GestureDetector(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text(meeting.eventName),
+                                  content: Text(
+                                    '開始: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(meeting.from)}\n'
+                                    '終了: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(meeting.to)}\n'
+                                    '友達: ${meeting.friendId}',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text('閉じる'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: meeting.background,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              meeting.eventName,
+                              style: TextStyle(color: Colors.white),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  }
                 },
               );
             },
