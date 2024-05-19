@@ -221,6 +221,13 @@ class ChatScreen extends HookConsumerWidget {
                         'imageUrl': imageUrl,
                         'userId': user?.uid,
                         'timestamp': FieldValue.serverTimestamp(),
+                      }).then((_) {
+                        // ここでスクロールを最下部に移動させる
+                        scrollController.animateTo(
+                          scrollController.position.maxScrollExtent,
+                          duration: Duration(milliseconds: 300),
+                          curve: Curves.easeOut,
+                        );
                       });
                     }
                   },
@@ -236,6 +243,12 @@ class ChatScreen extends HookConsumerWidget {
                         'timestamp': FieldValue.serverTimestamp(),
                       }).then((_) {
                         messageController.clear();
+                        // ここでスクロールを最下部に移動させる
+                        scrollController.animateTo(
+                          scrollController.position.maxScrollExtent,
+                          duration: Duration(milliseconds: 300),
+                          curve: Curves.easeOut,
+                        );
                       });
                     }
                   },

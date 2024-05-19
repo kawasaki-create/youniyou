@@ -55,6 +55,7 @@ class RootWidgets extends HookConsumerWidget {
       final user = FirebaseAuth.instance.currentUser;
       final friendsSnapshot = await FirebaseFirestore.instance.collection('friends').where('user_id', isEqualTo: user?.uid).get();
       final friends = friendsSnapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+      final todo = Todo(); // 新しいTodoオブジェクトを作成
       todo.id = user?.uid;
 
       String? selectedFriendId = todo.friendId;
@@ -99,7 +100,6 @@ class RootWidgets extends HookConsumerWidget {
                           );
                         }).toList(),
                       ),
-                      SizedBox(height: 16),
                       SizedBox(height: 16),
                       Text('開始日時：'),
                       TextButton(
