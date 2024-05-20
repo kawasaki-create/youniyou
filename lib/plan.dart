@@ -80,6 +80,28 @@ class Plan extends HookConsumerWidget {
                           ElevatedButton(
                             onPressed: () {
                               if (_editingDocumentId.value == document.id) {
+                                // バリデーション
+                                if (_startDateTime.value != null && _endDateTime.value != null && _endDateTime.value!.isBefore(_startDateTime.value!)) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text('エラー'),
+                                        content: Text('終了日時が開始日時より前になっています。日付を修正してください。'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text('OK'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                  return;
+                                }
+
                                 // 保存処理
                                 FirebaseFirestore.instance.collection('todo').doc(document.id).update({
                                   'description': _descriptionController.text,
@@ -161,8 +183,8 @@ class Plan extends HookConsumerWidget {
                                 final DateTime? pickedDate = await showDatePicker(
                                   context: context,
                                   initialDate: _startDateTime.value ?? DateTime.now(),
-                                  firstDate: DateTime.now(),
-                                  lastDate: DateTime.now().add(Duration(days: 365)),
+                                  firstDate: DateTime(2000), // 過去の日付を許可するために設定
+                                  lastDate: DateTime(2100), // 未来の日付を広く許可するために設定
                                 );
                                 if (pickedDate != null) {
                                   final TimeOfDay? pickedTime = await showTimePicker(
@@ -198,8 +220,8 @@ class Plan extends HookConsumerWidget {
                                 final DateTime? pickedDate = await showDatePicker(
                                   context: context,
                                   initialDate: _endDateTime.value ?? DateTime.now(),
-                                  firstDate: DateTime.now(),
-                                  lastDate: DateTime.now().add(Duration(days: 365)),
+                                  firstDate: DateTime(2000), // 過去の日付を許可するために設定
+                                  lastDate: DateTime(2100), // 未来の日付を広く許可するために設定
                                 );
                                 if (pickedDate != null) {
                                   final TimeOfDay? pickedTime = await showTimePicker(

@@ -29,6 +29,9 @@ class Home extends HookConsumerWidget {
       return Center(child: CircularProgressIndicator());
     }
 
+    final calendarFormat = useState(CalendarFormat.month);
+    final focusedDay = useState(DateTime.now());
+
     return Scaffold(
       appBar: AppBar(
         title: Text('スケジュール'),
@@ -193,10 +196,16 @@ class Home extends HookConsumerWidget {
                                             final meeting = event as Meeting;
                                             return ListTile(
                                               title: Text(meeting.eventName),
-                                              subtitle: Text(
-                                                '開始: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(meeting.from)}\n'
-                                                '終了: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(meeting.to)}\n'
-                                                '友達: ${meeting.friendId}',
+                                              subtitle: FutureBuilder<String?>(
+                                                future: _getFriendName(meeting.friendId),
+                                                builder: (context, snapshot) {
+                                                  final friendName = snapshot.data ?? '不明';
+                                                  return Text(
+                                                    '開始: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(meeting.from)}\n'
+                                                    '終了: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(meeting.to)}\n'
+                                                    '友達: $friendName',
+                                                  );
+                                                },
                                               ),
                                             );
                                           }).toList(),
@@ -281,10 +290,17 @@ class Home extends HookConsumerWidget {
               rowHeight: 80.0, // 基本の行の高さを少し増やす
               firstDay: DateTime.utc(2020, 1, 1),
               lastDay: DateTime.utc(2030, 12, 31),
-              focusedDay: DateTime.now(),
-              calendarFormat: CalendarFormat.month,
-              headerStyle: HeaderStyle(formatButtonVisible: false),
-              onDaySelected: (selectedDay, focusedDay) {
+              focusedDay: focusedDay.value,
+              calendarFormat: calendarFormat.value,
+              onFormatChanged: (format) {
+                calendarFormat.value = format;
+              },
+              onPageChanged: (newFocusedDay) {
+                focusedDay.value = newFocusedDay;
+              },
+              headerStyle: HeaderStyle(formatButtonVisible: true),
+              onDaySelected: (selectedDay, newFocusedDay) {
+                focusedDay.value = newFocusedDay;
                 final selectedEvents = events[selectedDay] ?? [];
                 showDialog(
                   context: context,
@@ -297,10 +313,16 @@ class Home extends HookConsumerWidget {
                           children: selectedEvents.map((meeting) {
                             return ListTile(
                               title: Text(meeting.eventName),
-                              subtitle: Text(
-                                '開始: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(meeting.from)}\n'
-                                '終了: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(meeting.to)}\n'
-                                '友達: ${meeting.friendId}',
+                              subtitle: FutureBuilder<String?>(
+                                future: _getFriendName(meeting.friendId),
+                                builder: (context, snapshot) {
+                                  final friendName = snapshot.data ?? '不明';
+                                  return Text(
+                                    '開始: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(meeting.from)}\n'
+                                    '終了: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(meeting.to)}\n'
+                                    '友達: $friendName',
+                                  );
+                                },
                               ),
                             );
                           }).toList(),
@@ -324,135 +346,76 @@ class Home extends HookConsumerWidget {
       ),
     );
   }
-}
 
-Future<Map<String, dynamic>?> _getFriendData(String friendId) async {
-  final friendDoc = await FirebaseFirestore.instance.collection('friends').doc(friendId).get();
-  if (friendDoc.exists) {
-    return friendDoc.data();
-  }
-  return null;
-}
-
-Future<void> _linkAccount(BuildContext context, WidgetRef ref) async {
-  final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-  final anonymousUser = ref.read(anonymousUserProvider);
-
-  try {
-    if (Platform.isIOS) {
-      final rawNonce = generateNonce();
-      final nonce = sha256ofString(rawNonce);
-      final appleCredential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
-        nonce: nonce,
-      );
-      final oauthCredential = OAuthProvider("apple.com").credential(
-        idToken: appleCredential.identityToken,
-        rawNonce: rawNonce,
-      );
-      final UserCredential userCredential = await anonymousUser!.linkWithCredential(oauthCredential);
-      ref.read(userProvider.notifier).state = userCredential.user;
-      ref.read(anonymousUserProvider.notifier).state = null;
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('アカウントリンク成功'),
-            content: Text('Appleアカウントとリンクされました。'),
-          );
-        },
-      );
-    } else {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-      final UserCredential userCredential = await anonymousUser!.linkWithCredential(credential);
-      ref.read(userProvider.notifier).state = userCredential.user;
-      ref.read(anonymousUserProvider.notifier).state = null;
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('アカウントリンク成功'),
-            content: Text('Googleアカウントとリンクされました。'),
-          );
-        },
-      );
+  Future<String?> _getFriendName(String friendId) async {
+    final friendDoc = await FirebaseFirestore.instance.collection('friends').doc(friendId).get();
+    if (friendDoc.exists) {
+      final data = friendDoc.data();
+      return data?['name'];
     }
-  } on FirebaseAuthException catch (e) {
-    if (e.code == 'credential-already-in-use') {
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('エラー'),
-            content: Text('このアカウントは既に別のアカウントに関連付けられています。\n'
-                '既存のアカウントでログインするか、別のアカウントを使用してください。'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('エラー'),
-            content: SelectableText(e.toString()),
-          );
-        },
-      );
-    }
-  } catch (e) {
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('エラー'),
-          content: SelectableText(e.toString()),
-        );
-      },
-    );
+    return null;
   }
-}
 
-Future<void> _unlinkGoogleAccount(BuildContext context, WidgetRef ref) async {
-  final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-  final User? user = firebaseAuth.currentUser;
+  Future<void> _linkAccount(BuildContext context, WidgetRef ref) async {
+    final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+    final anonymousUser = ref.read(anonymousUserProvider);
 
-  if (user != null) {
     try {
-      await user.unlink(GoogleAuthProvider.PROVIDER_ID);
-      ref.read(userProvider.notifier).state = null;
-
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('紐付け解除成功'),
-            content: Text('Googleアカウントの紐付けが解除されました。'),
-          );
-        },
-      );
+      if (Platform.isIOS) {
+        final rawNonce = generateNonce();
+        final nonce = sha256ofString(rawNonce);
+        final appleCredential = await SignInWithApple.getAppleIDCredential(
+          scopes: [
+            AppleIDAuthorizationScopes.email,
+            AppleIDAuthorizationScopes.fullName,
+          ],
+          nonce: nonce,
+        );
+        final oauthCredential = OAuthProvider("apple.com").credential(
+          idToken: appleCredential.identityToken,
+          rawNonce: rawNonce,
+        );
+        final UserCredential userCredential = await anonymousUser!.linkWithCredential(oauthCredential);
+        ref.read(userProvider.notifier).state = userCredential.user;
+        ref.read(anonymousUserProvider.notifier).state = null;
+        await showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('アカウントリンク成功'),
+              content: Text('Appleアカウントとリンクされました。'),
+            );
+          },
+        );
+      } else {
+        final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+        final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
+        final AuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+        final UserCredential userCredential = await anonymousUser!.linkWithCredential(credential);
+        ref.read(userProvider.notifier).state = userCredential.user;
+        ref.read(anonymousUserProvider.notifier).state = null;
+        await showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('アカウントリンク成功'),
+              content: Text('Googleアカウントとリンクされました。'),
+            );
+          },
+        );
+      }
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'no-such-provider') {
+      if (e.code == 'credential-already-in-use') {
         await showDialog(
           context: context,
           builder: (context) {
             return AlertDialog(
               title: Text('エラー'),
-              content: Text('このアカウントはGoogleアカウントと紐付けられていません。'),
+              content: Text('このアカウントは既に別のアカウントに関連付けられています。\n'
+                  '既存のアカウントでログインするか、別のアカウントを使用してください。'),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -468,7 +431,7 @@ Future<void> _unlinkGoogleAccount(BuildContext context, WidgetRef ref) async {
           builder: (context) {
             return AlertDialog(
               title: Text('エラー'),
-              content: Text(e.toString()),
+              content: SelectableText(e.toString()),
             );
           },
         );
@@ -479,24 +442,84 @@ Future<void> _unlinkGoogleAccount(BuildContext context, WidgetRef ref) async {
         builder: (context) {
           return AlertDialog(
             title: Text('エラー'),
-            content: Text(e.toString()),
+            content: SelectableText(e.toString()),
           );
         },
       );
     }
   }
-}
 
-String generateNonce([int length = 32]) {
-  final charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
-  final random = Random.secure();
-  return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
-}
+  Future<void> _unlinkGoogleAccount(BuildContext context, WidgetRef ref) async {
+    final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+    final User? user = firebaseAuth.currentUser;
 
-String sha256ofString(String input) {
-  final bytes = utf8.encode(input);
-  final digest = sha256.convert(bytes);
-  return digest.toString();
+    if (user != null) {
+      try {
+        await user.unlink(GoogleAuthProvider.PROVIDER_ID);
+        ref.read(userProvider.notifier).state = null;
+
+        await showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('紐付け解除成功'),
+              content: Text('Googleアカウントの紐付けが解除されました。'),
+            );
+          },
+        );
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'no-such-provider') {
+          await showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: Text('エラー'),
+                content: Text('このアカウントはGoogleアカウントと紐付けられていません。'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('OK'),
+                  ),
+                ],
+              );
+            },
+          );
+        } else {
+          await showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: Text('エラー'),
+                content: Text(e.toString()),
+              );
+            },
+          );
+        }
+      } catch (e) {
+        await showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('エラー'),
+              content: Text(e.toString()),
+            );
+          },
+        );
+      }
+    }
+  }
+
+  String generateNonce([int length = 32]) {
+    final charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+  }
+
+  String sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
 }
 
 class Meeting {

@@ -17,13 +17,13 @@ class RootWidgets extends HookConsumerWidget {
   static const _RootWidgetIcons = [
     Icons.calendar_today,
     Icons.people,
-    Icons.settings,
+    // Icons.settings, // 設定画面は一旦削除
   ];
 
   static const _RootWidgetItemNames = [
     'スケジュール',
     '友達',
-    '設定',
+    // '設定', // 設定画面は一旦削除
   ];
 
   @override

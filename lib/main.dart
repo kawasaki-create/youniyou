@@ -24,6 +24,7 @@ class MyApp extends HookConsumerWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        fontFamily: "Noto Sans JP", // ここを追加
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
