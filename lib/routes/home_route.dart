@@ -276,6 +276,118 @@ class Home extends HookConsumerWidget {
                     ],
                   );
                 },
+                todayBuilder: (context, day, focusedDay) {
+                  final dayEvents = events[day] ?? [];
+                  // 今日の日付のスタイルをdefaultBuilderと同じように設定
+                  if (dayEvents.length > 3) {
+                    return Column(
+                      children: [
+                        Align(
+                          alignment: Alignment.topLeft,
+                          child: Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: Text(
+                              day.day.toString(),
+                              style: TextStyle(fontSize: 16.0),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Center(
+                            child: GestureDetector(
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text('予定一覧'),
+                                      content: SingleChildScrollView(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: dayEvents.map((event) {
+                                            final meeting = event as Meeting;
+                                            return ListTile(
+                                              title: Text(meeting.eventName),
+                                              subtitle: FutureBuilder<String?>(
+                                                future: _getFriendName(meeting.friendId),
+                                                builder: (context, snapshot) {
+                                                  final friendName = snapshot.data ?? '不明';
+                                                  return Text(
+                                                    '開始: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(meeting.from)}\n'
+                                                    '終了: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(meeting.to)}\n'
+                                                    '友達: $friendName',
+                                                  );
+                                                },
+                                              ),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: Text('閉じる'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                              child: Container(
+                                padding: EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '全表示',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+
+                  // 予定が3つ以下の場合は通常通り予定を表示
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Align(
+                        alignment: Alignment.topLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: Text(
+                            day.day.toString(),
+                            style: TextStyle(fontSize: 16.0),
+                          ),
+                        ),
+                      ),
+                      ...dayEvents.map((event) {
+                        final meeting = event as Meeting;
+                        return Container(
+                          margin: const EdgeInsets.symmetric(vertical: 1.5),
+                          decoration: BoxDecoration(
+                            color: meeting.background,
+                            borderRadius: BorderRadius.circular(4.0),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(2.0),
+                            child: Text(
+                              meeting.eventName,
+                              style: TextStyle(color: Colors.white, fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ],
+                  );
+                },
                 markerBuilder: (context, day, events) => Container(), // 青い丸を表示しない
               ),
               calendarStyle: CalendarStyle(
@@ -285,6 +397,12 @@ class Home extends HookConsumerWidget {
                 ),
                 canMarkersOverflow: true,
                 cellMargin: EdgeInsets.all(4.0),
+                todayDecoration: BoxDecoration(
+                  color: Colors.transparent, // 今日の日付の特別な装飾をなくす
+                ),
+                todayTextStyle: TextStyle(
+                  color: Colors.black, // 今日の日付の文字色を通常に戻す
+                ),
               ),
               daysOfWeekHeight: 30.0,
               rowHeight: 80.0, // 基本の行の高さを少し増やす
