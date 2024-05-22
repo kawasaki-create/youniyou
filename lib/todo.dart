@@ -44,4 +44,39 @@ class Todo {
       friendId: friendId ?? this.friendId,
     );
   }
+
+  String? validateInputs(DateTime? startDateTime, DateTime? endDateTime, String? description) {
+    if (startDateTime == null) {
+      return '開始日時を入力してください。';
+    }
+    if (endDateTime == null) {
+      return '終了日時を入力してください。';
+    }
+    if (description == null || description.isEmpty) {
+      return '内容を入力してください。';
+    }
+    if (endDateTime.isBefore(startDateTime)) {
+      return '終了日時が開始日時より前になっています。日付を修正してください。';
+    }
+    return null;
+  }
+
+  String? validateInputsWithFriend(String? friendId, DateTime? startDateTime, DateTime? endDateTime, String? description) {
+    if (friendId == null || friendId.isEmpty) {
+      return '対象者を選択してください。';
+    }
+    if (startDateTime == null) {
+      return '開始日時を入力してください。';
+    }
+    if (endDateTime == null) {
+      return '終了日時を入力してください。';
+    }
+    if (description == null || description.isEmpty) {
+      return '内容を入力してください。';
+    }
+    if (endDateTime.isBefore(startDateTime)) {
+      return '終了日時が開始日時より前になっています。日付を修正してください。';
+    }
+    return null;
+  }
 }

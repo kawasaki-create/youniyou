@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:youniyou/todo.dart';
+
+final todoProvider = StateProvider<Todo>((ref) => Todo());
 
 class Plan extends HookConsumerWidget {
   final String friendId;
@@ -16,6 +19,7 @@ class Plan extends HookConsumerWidget {
     final _descriptionController = useTextEditingController();
     final _startDateTime = useState<DateTime?>(null);
     final _endDateTime = useState<DateTime?>(null);
+    final todo = ref.watch(todoProvider);
 
     Stream<QuerySnapshot> getStream() {
       Query query = FirebaseFirestore.instance.collection('todo').where('friendId', isEqualTo: friendId);
@@ -81,13 +85,14 @@ class Plan extends HookConsumerWidget {
                             onPressed: () {
                               if (_editingDocumentId.value == document.id) {
                                 // バリデーション
-                                if (_startDateTime.value != null && _endDateTime.value != null && _endDateTime.value!.isBefore(_startDateTime.value!)) {
+                                final error = todo.validateInputs(_startDateTime.value, _endDateTime.value, _descriptionController.text);
+                                if (error != null) {
                                   showDialog(
                                     context: context,
                                     builder: (BuildContext context) {
                                       return AlertDialog(
                                         title: Text('エラー'),
-                                        content: Text('終了日時が開始日時より前になっています。日付を修正してください。'),
+                                        content: Text(error),
                                         actions: [
                                           TextButton(
                                             onPressed: () {

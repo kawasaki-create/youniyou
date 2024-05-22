@@ -184,6 +184,28 @@ class RootWidgets extends HookConsumerWidget {
                   TextButton(
                     child: Text('登録'),
                     onPressed: () async {
+                      final error = todo.validateInputsWithFriend(todo.friendId, todo.startDateTime, todo.endDateTime, todo.description);
+                      if (error != null) {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('エラー'),
+                              content: Text(error),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text('OK'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                        return;
+                      }
+
                       await FirebaseFirestore.instance.collection('todo').add(todo.toMap());
                       ref.read(todoProvider.notifier).state = Todo();
                       Navigator.of(context).pop();

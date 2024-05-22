@@ -54,6 +54,7 @@ dependencies:
   table_calendar:
   path_provider_foundation:
   syncfusion_flutter_calendar:
+  claude_dart_flutter: ^1.0.0+1
 
 dev_dependencies:
   flutter_test:

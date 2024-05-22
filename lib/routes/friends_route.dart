@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:youniyou/chats.dart';
 import 'package:youniyou/plan.dart';
+import 'package:youniyou/claude.dart';
 
 class FriendModal extends HookConsumerWidget {
   final String? friendId;
@@ -274,6 +275,18 @@ class Friends extends HookConsumerWidget {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        IconButton(
+                          onPressed: () {
+                            // クロード画面に遷移
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Claude(friendId: document.id),
+                              ),
+                            );
+                          },
+                          icon: Icon(Icons.psychology_outlined),
+                        ),
                         TextButton(
                           onPressed: () {
                             // 予定一覧画面に遷移
