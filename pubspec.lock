@@ -33,6 +33,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.11.3"
+  anthropic_dart:
+    dependency: "direct main"
+    description:
+      name: anthropic_dart
+      sha256: "17bbb2aabd4450f4edde2a0df63aa0f3ae67fc3ef8f6eab09f2cefc1ec02ed9e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   args:
     dependency: transitive
     description:
@@ -137,14 +145,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.3"
-  claude_dart_flutter:
-    dependency: "direct main"
-    description:
-      name: claude_dart_flutter
-      sha256: "52c2ede2b724cc902fd8d6176d4cbc04aa4fd23cea73c9cda4da0f7f1279a7d5"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0+1"
   clock:
     dependency: transitive
     description:
