@@ -3,6 +3,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:anthropic_dart/anthropic_dart.dart';
 import 'env.dart'; // ここでenv.dartをインポート
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Claude extends HookConsumerWidget {
   final String friendId;
@@ -41,12 +43,14 @@ class Claude extends HookConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       isLoading.value = true; // ローディングを開始
-                      talk(message.value).then((value) {
+                      await talk(message.value).then((value) {
                         response.value = value;
                         isLoading.value = false; // ローディングを終了
                       });
+                      textController.clear(); // 入力値をクリア
+                      message.value = ''; // 状態もリセット
                     },
                     child: Text('送信'),
                   ),
@@ -60,6 +64,7 @@ class Claude extends HookConsumerWidget {
                   ),
                 ],
               ),
+              Text(''),
               isLoading.value
                   ? CircularProgressIndicator() // ローディング中に表示
                   : SelectableText(response.value),
@@ -87,5 +92,14 @@ class Claude extends HookConsumerWidget {
     // debugPrint('Response body: ${response.toJson()["content"][0]["text"]}');
 
     return response.toJson()["content"][0]["text"];
+  }
+
+  Future _getPlan() async {
+    final querySnapshot = await FirebaseFirestore.instance.collection('todo').where('friendId', isEqualTo: friendId).get();
+
+    final plans = querySnapshot.docs.map((doc) => doc.data()).toList();
+    // 取得したデータを適切に処理します（例：表示、保存など）
+
+    return plans;
   }
 }
