@@ -281,7 +281,7 @@ class Friends extends HookConsumerWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => Claude(friendId: document.id),
+                                builder: (context) => Claude(friendId: document.id, friendName: data['name']),
                               ),
                             );
                           },
