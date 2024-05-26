@@ -55,6 +55,7 @@ dependencies:
   path_provider_foundation:
   syncfusion_flutter_calendar:
   anthropic_dart: ^1.0.1
+  intro_views_flutter: 
 
 dev_dependencies:
   flutter_test:

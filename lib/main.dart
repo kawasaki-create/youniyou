@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:youniyou/root.dart';
 import 'package:youniyou/login_page.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:youniyou/first_tutorial.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,25 +20,57 @@ class MyApp extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authStateChanges = useStream(FirebaseAuth.instance.authStateChanges());
-    // print(useStream(FirebaseAuth.instance.authStateChanges()));
 
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        fontFamily: "Noto Sans JP", // ここを追加
-        useMaterial3: true,
-      ),
-      debugShowCheckedModeBanner: false,
-      // home: MyHomePage(
-      //   title: 'YouniYou',
-      // ),
-      home: authStateChanges.data == null
-          ? MyHomePage(
-              title: 'YouniYou',
-            )
-          : RootWidgets(),
+    return FutureBuilder<bool>(
+      future: _isFirstLaunch(),
+      builder: (context, snapshot) {
+        // if (snapshot.connectionState == ConnectionState.waiting) {
+        //   return MaterialApp(
+        //     home: Scaffold(
+        //       body: Center(child: CircularProgressIndicator()),
+        //     ),
+        //   );
+        // }
+
+        if (snapshot.data == true) {
+          return MaterialApp(
+            title: 'Flutter Demo',
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+              fontFamily: "Noto Sans JP",
+              useMaterial3: true,
+            ),
+            debugShowCheckedModeBanner: false,
+            home: IntroView(),
+          );
+        } else {
+          return MaterialApp(
+            title: 'Flutter Demo',
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+              fontFamily: "Noto Sans JP",
+              useMaterial3: true,
+            ),
+            debugShowCheckedModeBanner: false,
+            home: authStateChanges.data == null
+                ? MyHomePage(
+                    title: 'YouniYou',
+                  )
+                : RootWidgets(),
+          );
+        }
+      },
     );
+  }
+
+  Future<bool> _isFirstLaunch() async {
+    // final prefs = await SharedPreferences.getInstance();
+    // final isFirstLaunch = prefs.getBool('isAlreadyFirstLaunch') ?? true;
+    // if (isFirstLaunch) {
+    //   prefs.setBool('isAlreadyFirstLaunch', false);
+    // }
+    // return isFirstLaunch;
+    return false;
   }
 }
 
