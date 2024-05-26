@@ -104,7 +104,6 @@ class ChatScreen extends HookConsumerWidget {
                         : SizedBox.shrink();
 
                 previousDate = messageDate;
-
                 if (data.containsKey('imageUrl')) {
                   return Column(
                     children: [
@@ -208,31 +207,32 @@ class ChatScreen extends HookConsumerWidget {
                   ),
                 ),
                 SizedBox(width: 10),
-                IconButton(
-                  onPressed: () async {
-                    final pickedImage = await ImagePicker().pickImage(source: ImageSource.gallery);
-                    if (pickedImage != null) {
-                      // 画像が選択された場合の処理
-                      final imageFile = File(pickedImage.path);
-                      final storageRef = FirebaseStorage.instance.ref().child('chats/$friendId/${DateTime.now().millisecondsSinceEpoch}.jpg');
-                      await storageRef.putFile(imageFile);
-                      final imageUrl = await storageRef.getDownloadURL();
-                      FirebaseFirestore.instance.collection('chats').doc(friendId).collection('messages').add({
-                        'imageUrl': imageUrl,
-                        'userId': user?.uid,
-                        'timestamp': FieldValue.serverTimestamp(),
-                      }).then((_) {
-                        // ここでスクロールを最下部に移動させる
-                        scrollController.animateTo(
-                          scrollController.position.maxScrollExtent,
-                          duration: Duration(milliseconds: 300),
-                          curve: Curves.easeOut,
-                        );
-                      });
-                    }
-                  },
-                  icon: Icon(Icons.photo),
-                ),
+                // 有料版作成までは画像の送信は無効化
+                // IconButton(
+                //   onPressed: () async {
+                //     final pickedImage = await ImagePicker().pickImage(source: ImageSource.gallery);
+                //     if (pickedImage != null) {
+                //       // 画像が選択された場合の処理
+                //       final imageFile = File(pickedImage.path);
+                //       final storageRef = FirebaseStorage.instance.ref().child('chats/$friendId/${DateTime.now().millisecondsSinceEpoch}.jpg');
+                //       await storageRef.putFile(imageFile);
+                //       final imageUrl = await storageRef.getDownloadURL();
+                //       FirebaseFirestore.instance.collection('chats').doc(friendId).collection('messages').add({
+                //         'imageUrl': imageUrl,
+                //         'userId': user?.uid,
+                //         'timestamp': FieldValue.serverTimestamp(),
+                //       }).then((_) {
+                //         // ここでスクロールを最下部に移動させる
+                //         scrollController.animateTo(
+                //           scrollController.position.maxScrollExtent,
+                //           duration: Duration(milliseconds: 300),
+                //           curve: Curves.easeOut,
+                //         );
+                //       });
+                //     }
+                //   },
+                //   icon: Icon(Icons.photo),
+                // ),
                 SizedBox(width: 10),
                 ElevatedButton(
                   onPressed: () {

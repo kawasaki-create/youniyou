@@ -20,122 +20,113 @@ class Claude extends HookConsumerWidget {
     final response = useState('');
     final textController = useTextEditingController(); // コントローラーを追加
     final isLoading = useState(false); // ローディング状態を追加
-    final planDebug = useState('しょきち'); //デバッグ用、後で削除
-    final planAnalysis = useState(''); //予定分析結果
-    final chatDebug = useState('チャット'); //デバッグ用、後で削除
-    final chatAnalysis = useState(''); //チャット分析結果
+    final isChatting = useState(false); // チャット画面のフラグ
+    final analysisResult = useState(''); //分析結果
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(friendName + ' のAI分析'),
-        backgroundColor: Colors.cyan[100],
-      ),
-      body: SingleChildScrollView(
-        // 画面がスクロール可能になるように変更
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              // TextFormField(
-              //   controller: textController, // コントローラーを適用
-              //   decoration: InputDecoration(
-              //     labelText: 'メッセージを入力してください',
-              //   ),
-              //   onChanged: (value) {
-              //     message.value = value;
-              //   },
-              // ),
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.center,
-              //   children: [
-              //     ElevatedButton(
-              //       onPressed: () async {
-              //         isLoading.value = true; // ローディングを開始
-              //         await talk(message.value).then((value) {
-              //           response.value = value;
-              //           isLoading.value = false; // ローディングを終了
-              //         });
-              //         textController.clear(); // 入力値をクリア
-              //         message.value = ''; // 状態もリセット
-              //       },
-              //       child: Text('送信'),
-              //     ),
-              //     SizedBox(width: 8), // ボタン間のスペース
-              //     ElevatedButton(
-              //       onPressed: () {
-              //         textController.clear(); // 入力値をクリア
-              //         message.value = ''; // 状態もリセット
-              //       },
-              //       child: Text('リセット'),
-              //     ),
-              //   ],
-              // ),
-              ElevatedButton(
-                onPressed: () async {
-                  final plans = await _getPlan();
-                  planDebug.value = plans.toString();
-                  final analyzePrompt = plans.map((plan) => '予定名: ${plan['description']}, 開始日時: ${plan['startFormattedDate']}, 終了日時: ${plan['endFormattedDate']}').join('\n');
-                  // print('以下のは友人との予定である。これを見て分かることを分析しなさい。' + analyzePrompt);
-                  isLoading.value = true; // ローディングを開始
-                  await talk('以下のは友人との予定である。これを見て分かることを分析しなさい。また、予定について楽しそう・つまらなそうなど思ったことも指摘しなさい。さらに、タイトルからどんな予定なのかも予測して言及すること。' + analyzePrompt).then((value) {
-                    planAnalysis.value = value;
-                    isLoading.value = false; // ローディングを終了
-                  });
-                },
-                child: Text('予定分析'),
-              ),
-              Text('分析結果：'),
-              SelectableText(planAnalysis.value),
-              Text(''),
-              ElevatedButton(
-                onPressed: () async {
-                  final chats = await _getChat();
-                  chatDebug.value = chats.toString();
-                  final analyzePrompt = chats.join('\n');
-                  isLoading.value = true; // ローディングを開始
-                  await talk('以下のは友人に対するメモである。これを見て分かることを分析しなさい。また、このメモにからわかる、友人との関係、楽しそう・つまらなそうなど思ったことも指摘しなさい。' + analyzePrompt).then((value) {
-                    chatAnalysis.value = value;
-                    isLoading.value = false; // ローディングを終了
-                  });
-                },
-                child: Text('メモ分析'),
-              ),
-              Text('分析結果：'),
-              SelectableText(chatAnalysis.value),
-              Text(''),
-              isLoading.value
-                  ? CircularProgressIndicator() // ローディング中に表示
-                  : SelectableText(response.value),
-              // ElevatedButton(
-              //   onPressed: () async {
-              //     final plans = await _getPlan();
-              //     planDebug.value = plans.toString();
-              //     debugPrint(plans.toString());
-              //   },
-              //   child: Text('予定を取得'),
-              // ),
-              // // SelectableText(planDebug.value),
-              // Text('友人の名前: ${friendName}'),
-              // ElevatedButton(
-              //   onPressed: () async {
-              //     final chats = await _getChat();
-              //     chatDebug.value = chats.toString();
-              //     // debugPrint(chats.toString());
-              //   },
-              //   child: Text('チャットを取得'),
-              // ),
-              // SelectableText(chatDebug.value),
-              ElevatedButton(
-                onPressed: () {
-                  // ここで予定とメモを分析して、AIとのチャットフラグも変更して分析チャットをスタートする予定
-                },
-                child: Text('分析スタート'),
-              ),
-            ],
+    // チャット画面のウィジェット
+    Widget chatScreen() {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(friendName + ' のAIチャット'),
+          backgroundColor: Colors.cyan[100],
+        ),
+        body: SingleChildScrollView(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                // TextFormField(
+                //   controller: textController, // コントローラーを適用
+                //   decoration: InputDecoration(
+                //     labelText: 'メッセージを入力してください',
+                //   ),
+                //   onChanged: (value) {
+                //     message.value = value;
+                //   },
+                // ),
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.center,
+                //   children: [
+                //     ElevatedButton(
+                //       onPressed: () {
+                //         isLoading.value = true; // ローディングを開始
+                //         talk(message.value).then((value) {
+                //           response.value = value;
+                //           isLoading.value = false; // ローディングを終了
+                //         });
+                //       },
+                //       child: Text('送信'),
+                //     ),
+                //     SizedBox(width: 8), // ボタン間のスペース
+                //     ElevatedButton(
+                //       onPressed: () {
+                //         textController.clear(); // 入力値をクリア
+                //         message.value = ''; // 状態もリセット
+                //       },
+                //       child: Text('リセット'),
+                //     ),
+                //   ],
+                // ),
+                isLoading.value
+                    ? CircularProgressIndicator() // ローディング中に表示
+                    : SelectableText(response.value),
+                // Text('分析結果：'),
+                SelectableText(analysisResult.value),
+                Text(''),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('前の画面に戻る'),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
+
+    // 現在の画面
+    Widget mainScreen() {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(friendName + ' のAI分析'),
+          backgroundColor: Colors.cyan[100],
+        ),
+        body: SingleChildScrollView(
+          // 画面がスクロール可能になるように変更
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                ElevatedButton(
+                  onPressed: () async {
+                    isLoading.value = true; // ローディングを開始
+                    final plans = await _getPlan();
+                    final chats = await _getChat();
+
+                    final analyzePrompt = plans.map((plan) => '予定名: ${plan['description']}, 開始日時: ${plan['startFormattedDate']}, 終了日時: ${plan['endFormattedDate']}').join('\n') + '\n\n' + chats.join('\n');
+
+                    final analysis = await talk('以下のは、作成者と${friendName}が共に行う予定と、作成者が${friendName}に対して思っていることのメモである。これを見て分かることを分析しなさい。また、楽しそう・つまらなそうなど思ったことも指摘しなさい。さらに、タイトルやメモの内容からどんなことが推測できるかも言及すること。' + analyzePrompt);
+
+                    analysisResult.value = analysis;
+                    isLoading.value = false; // ローディングを終了
+
+                    isChatting.value = true; // チャット画面に切り替え
+                  },
+                  child: Text('分析スタート'),
+                ),
+                isLoading.value
+                    ? CircularProgressIndicator() // ローディング中に表示
+                    : SelectableText(response.value),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return isChatting.value ? chatScreen() : mainScreen();
   }
 
   Future<String> talk(String text) async {
