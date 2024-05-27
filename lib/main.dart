@@ -64,12 +64,15 @@ class MyApp extends HookConsumerWidget {
   }
 
   Future<bool> _isFirstLaunch() async {
+    // デバッグで初回起動を確認するためにコメントアウト
+
     // final prefs = await SharedPreferences.getInstance();
     // final isFirstLaunch = prefs.getBool('isAlreadyFirstLaunch') ?? true;
     // if (isFirstLaunch) {
     //   prefs.setBool('isAlreadyFirstLaunch', false);
     // }
     // return isFirstLaunch;
+    return true;
     return false;
   }
 }
