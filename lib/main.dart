@@ -72,7 +72,7 @@ class MyApp extends HookConsumerWidget {
     //   prefs.setBool('isAlreadyFirstLaunch', false);
     // }
     // return isFirstLaunch;
-    return true;
+    // return true;
     return false;
   }
 }

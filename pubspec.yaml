@@ -55,7 +55,8 @@ dependencies:
   path_provider_foundation:
   syncfusion_flutter_calendar:
   anthropic_dart: ^1.0.1
-  intro_views_flutter: 
+  intro_views_flutter:
+  flutter_launcher_icons: ^0.13.1
 
 dev_dependencies:
   flutter_test:
@@ -124,6 +125,6 @@ flutter:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/images/pt.png"
+  image_path: "assets/images/iconSlice.png"
   #image_path_android: "assets/images/（android用の画像）.png"
   #image_path_ios: "assets/images/（ios用の画像）.png"
