@@ -101,52 +101,53 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           ),
         ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
+        child: Column(
+          children: [
+            Spacer(),
+            Center(
+              child: Text(
                 'Youに用！',
                 style: TextStyle(
-                  fontSize: 32,
+                  fontSize: 40,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const RootWidgets()),
-                  );
-                },
-                child: Text(
-                  'RootWidgetsへ',
+            ),
+            Spacer(),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '友達との予定にフォーカスした予定管理ができるシンプルなアプリ',
                   style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: Colors.white,
+                    decoration: TextDecoration.underline,
+                    decorationColor: Colors.greenAccent,
+                    decorationThickness: 3.0,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginPage()),
+                    );
+                  },
+                  child: Text(
+                    '使ってみる',
+                    style: TextStyle(
+                      fontSize: 24,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => LoginPage()),
-                  );
-                },
-                child: Text(
-                  'LoginPageへ',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-            ],
-          ),
+                SizedBox(height: 150),
+              ],
+            ),
+          ],
         ),
       ),
     );
