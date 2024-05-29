@@ -99,6 +99,7 @@ class Claude extends HookConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
+                SizedBox(height: MediaQuery.of(context).size.height * 0.35), // 上部にスペースを追加
                 ElevatedButton(
                   onPressed: () async {
                     isLoading.value = true; // ローディングを開始
@@ -116,6 +117,7 @@ class Claude extends HookConsumerWidget {
                   },
                   child: Text('分析スタート'),
                 ),
+                SizedBox(height: 20), // ボタンとローディングインジケータの間にスペースを追加
                 isLoading.value
                     ? CircularProgressIndicator() // ローディング中に表示
                     : SelectableText(response.value),

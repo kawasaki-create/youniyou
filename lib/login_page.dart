@@ -142,7 +142,7 @@ class LoginPage extends HookConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: isLogin.value ? Text('ログイン') : Text('新規登録'),
+        title: isLogin.value ? Text('ログイン') : Text('新規登録・ログイン'),
         backgroundColor: Colors.cyan[100],
       ),
       body: Center(

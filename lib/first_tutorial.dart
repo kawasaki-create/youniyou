@@ -8,10 +8,10 @@ class IntroView extends StatelessWidget {
   static final pages = [
     PageViewModel(
       pageColor: const Color(0xFFFF7A00),
-      body: Text('＋ボタンを押し、友達を追加します。アイコンタップで編集もできます。'),
+      body: Text('追加ボタンを押し、友達を追加します。アイコンタップで編集もできます。'),
       title: Text('友達の追加'),
       mainImage: Image.asset(
-        'assets/images/intro_view/SliceAddPlan.png',
+        'assets/images/intro_view/SliceAddFriend.png',
         // height: 400.0,
         // width: 400.0,
         // alignment: Alignment.center,
@@ -28,7 +28,7 @@ class IntroView extends StatelessWidget {
       ),
       title: Text('予定の追加'),
       mainImage: Image.asset(
-        'assets/images/intro_view/SliceAddDetail1.png',
+        'assets/images/intro_view/SlicePlans.png',
         // height: 320.0,
         // width: 320.0,
         // alignment: Alignment.center,
@@ -45,7 +45,7 @@ class IntroView extends StatelessWidget {
       ),
       title: Text('メモ画面'),
       mainImage: Image.asset(
-        'assets/images/intro_view/SliceAddDetail2.png',
+        'assets/images/intro_view/SliceMemo.png',
         // height: 320.0,
         // width: 320.0,
         // alignment: Alignment.center,
@@ -62,7 +62,7 @@ class IntroView extends StatelessWidget {
       ),
       title: Text('カレンダー画面'),
       mainImage: Image.asset(
-        'assets/images/intro_view/SliceAddBl.png',
+        'assets/images/intro_view/SliceCal.png',
         // height: 400.0,
         // width: 400.0,
         // alignment: Alignment.center,
@@ -79,7 +79,7 @@ class IntroView extends StatelessWidget {
       ),
       title: Text('AI診断(β版)'),
       mainImage: Image.asset(
-        'assets/images/intro_view/SliceHome.png',
+        'assets/images/intro_view/SliceAi.png',
         // height: 400.0,
         // width: 400.0,
         // alignment: Alignment.center,
