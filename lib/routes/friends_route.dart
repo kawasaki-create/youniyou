@@ -188,7 +188,20 @@ class Friends extends HookConsumerWidget {
     }
 
     if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-      return Center(child: Text('友達がいません'));
+      return Center(
+        child: ElevatedButton(
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              builder: (BuildContext context) {
+                return FriendModal();
+              },
+            );
+          },
+          child: Text('友達を追加'),
+        ),
+      );
     }
 
     return Scaffold(

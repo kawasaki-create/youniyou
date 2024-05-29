@@ -77,6 +77,33 @@ class Home extends HookConsumerWidget {
               },
             ),
           IconButton(
+            icon: Icon(Icons.person_remove),
+            onPressed: () async {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('アカウントを削除しますか？(戻せません)'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text('キャンセル'),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          await _deleteAccount(context, ref);
+                        },
+                        child: Text('削除'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+          IconButton(
             icon: Icon(Icons.logout),
             onPressed: () async {
               showDialog(
@@ -631,6 +658,80 @@ class Home extends HookConsumerWidget {
             },
           );
         }
+      } catch (e) {
+        await showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('エラー'),
+              content: Text(e.toString()),
+            );
+          },
+        );
+      }
+    }
+  }
+
+  Future<void> deleteAllFriends(String userId) async {
+    final querySnapshot = await FirebaseFirestore.instance.collection('friends').where('user_id', isEqualTo: userId).get();
+
+    for (final doc in querySnapshot.docs) {
+      await doc.reference.delete();
+    }
+  }
+
+  Future<void> deleteAllTodo(String userId) async {
+    final querySnapshot = await FirebaseFirestore.instance.collection('todo').where('id', isEqualTo: userId).get();
+
+    for (final doc in querySnapshot.docs) {
+      await doc.reference.delete();
+    }
+  }
+
+  Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
+    final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+    final User? user = firebaseAuth.currentUser;
+
+    if (user != null) {
+      try {
+        // アカウント削除前に friends コレクションの関連ドキュメントを削除
+        await deleteAllFriends(user.uid);
+        // アカウント削除前に todo コレクションの関連ドキュメントを削除
+        await deleteAllTodo(user.uid);
+        await FirebaseFirestore.instance.collection('chats').doc(user.uid).delete();
+        await user.delete();
+        ref.read(userProvider.notifier).state = null;
+
+        await showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('アカウント削除成功'),
+              content: Text('アカウントが削除されました。'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => MyApp()),
+                    );
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      } on FirebaseAuthException catch (e) {
+        await showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('エラー'),
+              content: Text(e.toString()),
+            );
+          },
+        );
       } catch (e) {
         await showDialog(
           context: context,
