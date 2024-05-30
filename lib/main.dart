@@ -8,6 +8,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:youniyou/first_tutorial.dart';
 
+import 'common_widget/update_prompt_dialog.dart';
+import 'emun/update_request_type.dart';
+import 'feature/util/forced_update/update_request_provider.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -20,6 +24,30 @@ class MyApp extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authStateChanges = useStream(FirebaseAuth.instance.authStateChanges());
+
+    // updateの確認
+    final updateRequestType = ref.watch(updateRequesterProvider).whenOrNull(
+          skipLoadingOnRefresh: false,
+          data: (updateRequestType) => updateRequestType,
+        );
+    // デバッグ時は邪魔なので消す
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // アップデートがあった場合
+      if (updateRequestType == UpdateRequestType.cancelable || updateRequestType == UpdateRequestType.forcibly) {
+        // 新しいバージョンがある場合はダイアログを表示する
+        // barrierDismissible はダイアログ表示時の背景をタップしたときにダイアログを閉じてよいかどうか
+        // updateの案内を勝手に閉じて欲しくないのでbarrierDismissibleはfalse
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return UpdatePromptDialog(
+              updateRequestType: updateRequestType,
+            );
+          },
+        );
+      }
+    });
 
     return FutureBuilder<bool>(
       future: _isFirstLaunch(),

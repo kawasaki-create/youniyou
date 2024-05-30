@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:youniyou/common_widget/update_prompt_dialog.dart';
+import 'package:youniyou/emun/update_request_type.dart';
+import 'package:youniyou/feature/util/forced_update/update_request_provider.dart';
 import 'package:youniyou/routes/friends_route.dart';
 import 'package:youniyou/routes/home_route.dart';
 import 'package:youniyou/routes/settings_route.dart';
@@ -28,6 +31,30 @@ class RootWidgets extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // updateの確認
+    final updateRequestType = ref.watch(updateRequesterProvider).whenOrNull(
+          skipLoadingOnRefresh: false,
+          data: (updateRequestType) => updateRequestType,
+        );
+    // デバッグ時は邪魔なので消す
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // アップデートがあった場合
+      if (updateRequestType == UpdateRequestType.cancelable || updateRequestType == UpdateRequestType.forcibly) {
+        // 新しいバージョンがある場合はダイアログを表示する
+        // barrierDismissible はダイアログ表示時の背景をタップしたときにダイアログを閉じてよいかどうか
+        // updateの案内を勝手に閉じて欲しくないのでbarrierDismissibleはfalse
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return UpdatePromptDialog(
+              updateRequestType: updateRequestType,
+            );
+          },
+        );
+      }
+    });
+
     final selectedIndex = ref.watch(selectedIndexProvider);
     final todo = ref.watch(todoProvider);
     final routes = [
