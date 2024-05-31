@@ -61,6 +61,8 @@ dependencies:
   firebase_remote_config: ^4.4.7
   url_launcher: ^6.2.6
   package_info_plus: ^8.0.0
+  freezed_annotation: ^2.4.1
+  flutter_local_notifications: ^17.1.2
 
 dev_dependencies:
   flutter_test:
@@ -73,6 +75,8 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^3.0.0
   build_runner:
+  freezed: ^2.3.2
+  json_serializable: ^6.6.1
   riverpod_generator:
 
 # For information on the generic Dart part of this file, see the
