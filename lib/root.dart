@@ -255,6 +255,7 @@ class RootWidgets extends HookConsumerWidget {
               Expanded(
                 child: routes[selectedIndex],
               ),
+              Text(updateRequestType.toString()),
             ],
           ),
         ),

@@ -44,19 +44,19 @@ class UpdatePromptDialog extends ConsumerWidget {
         title: const Text('アプリが更新されました。\n\n最新バージョンのダウンロードをお願いします。'),
         actions: [
           if (updateRequestType == UpdateRequestType.cancelable)
-            // TextButton(
-            //   onPressed: () async {
-            //     Navigator.pop(context);
-            //     await ref
-            //         .watch(sharedPreferencesRepositoryProvider)
-            //         .save<String>(
-            //           SharedPreferencesKey.cancelledUpdateDateTime,
-            //           DateTime.now().toString(),
-            //         );
-            //     ref.invalidate(updateRequesterProvider);
-            //   },
-            //   child: const Text('　キャンセル'),
-            // ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await ref
+                    .watch(sharedPreferencesRepositoryProvider)
+                    .save<String>(
+                      SharedPreferencesKey.cancelledUpdateDateTime,
+                      DateTime.now().toString(),
+                    );
+                ref.invalidate(updateRequesterProvider);
+              },
+              child: const Text('　キャンセル'),
+            ),
             TextButton(
               onPressed: () {
                 // App Store or Google Play に飛ばす処理
