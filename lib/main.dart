@@ -11,10 +11,13 @@ import 'package:youniyou/first_tutorial.dart';
 import 'common_widget/update_prompt_dialog.dart';
 import 'emun/update_request_type.dart';
 import 'feature/util/forced_update/update_request_provider.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'admobHelper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  AdmobHelper.initialization();
   runApp(ProviderScope(
     child: MyApp(),
   ));

@@ -10,6 +10,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:youniyou/todo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'admobHelper.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 final selectedIndexProvider = StateProvider<int>((ref) => 0);
 final todoProvider = StateProvider<Todo>((ref) => Todo());
@@ -31,6 +33,8 @@ class RootWidgets extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Admobの初期化
+    AdmobHelper admobHelper = AdmobHelper();
     // updateの確認
     final updateRequestType = ref.watch(updateRequesterProvider).whenOrNull(
           skipLoadingOnRefresh: false,
@@ -256,6 +260,12 @@ class RootWidgets extends HookConsumerWidget {
                 child: routes[selectedIndex],
               ),
               Text(updateRequestType.toString()),
+              SizedBox(
+                height: 50, // バナー広告の高さを固定する
+                child: AdWidget(
+                  ad: AdmobHelper.getBannerAd()..load(),
+                ),
+              ),
             ],
           ),
         ),
