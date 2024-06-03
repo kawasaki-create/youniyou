@@ -45,25 +45,25 @@ class RootWidgets extends HookConsumerWidget {
     bool _isDialogShown = false;
 
     // デバッグ時は邪魔なので消す
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   // アップデートがあった場合
-    //   if (!_isDialogShown && (updateRequestType == UpdateRequestType.cancelable || updateRequestType == UpdateRequestType.forcibly)) {
-    //     // フラグを設定
-    //     _isDialogShown = true;
-    //     // 新しいバージョンがある場合はダイアログを表示する
-    //     // barrierDismissible はダイアログ表示時の背景をタップしたときにダイアログを閉じてよいかどうか
-    //     // updateの案内を勝手に閉じて欲しくないのでbarrierDismissibleはfalse
-    //     showDialog<void>(
-    //       context: context,
-    //       barrierDismissible: false,
-    //       builder: (context) {
-    //         return UpdatePromptDialog(
-    //           updateRequestType: updateRequestType,
-    //         );
-    //       },
-    //     );
-    //   }
-    // });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // アップデートがあった場合
+      if (!_isDialogShown && (updateRequestType == UpdateRequestType.cancelable || updateRequestType == UpdateRequestType.forcibly)) {
+        // フラグを設定
+        _isDialogShown = true;
+        // 新しいバージョンがある場合はダイアログを表示する
+        // barrierDismissible はダイアログ表示時の背景をタップしたときにダイアログを閉じてよいかどうか
+        // updateの案内を勝手に閉じて欲しくないのでbarrierDismissibleはfalse
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return UpdatePromptDialog(
+              updateRequestType: updateRequestType,
+            );
+          },
+        );
+      }
+    });
 
     final selectedIndex = ref.watch(selectedIndexProvider);
     final todo = ref.watch(todoProvider);
