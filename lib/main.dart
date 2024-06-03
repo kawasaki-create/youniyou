@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:youniyou/feature/util/shared_preferences/shared_preferences_repository.dart';
+import 'package:youniyou/firebase_options.dart';
 import 'package:youniyou/root.dart';
 import 'package:youniyou/login_page.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -16,41 +18,35 @@ import 'admobHelper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   AdmobHelper.initialization();
-  runApp(ProviderScope(
-    child: MyApp(),
-  ));
+
+  // SharedPreferencesの初期化
+  late final SharedPreferences sharedPreferences;
+  await Future.wait([
+    Future(() async {
+      sharedPreferences = await SharedPreferences.getInstance();
+    }),
+  ]);
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        sharedPreferencesRepositoryProvider.overrideWithValue(
+          SharedPreferencesRepository(sharedPreferences),
+        ),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authStateChanges = useStream(FirebaseAuth.instance.authStateChanges());
-
-    // updateの確認
-    final updateRequestType = ref.watch(updateRequesterProvider).whenOrNull(
-          skipLoadingOnRefresh: false,
-          data: (updateRequestType) => updateRequestType,
-        );
-    // デバッグ時は邪魔なので消す
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // アップデートがあった場合
-      if (updateRequestType == UpdateRequestType.cancelable || updateRequestType == UpdateRequestType.forcibly) {
-        // 新しいバージョンがある場合はダイアログを表示する
-        // barrierDismissible はダイアログ表示時の背景をタップしたときにダイアログを閉じてよいかどうか
-        // updateの案内を勝手に閉じて欲しくないのでbarrierDismissibleはfalse
-        showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) {
-            return UpdatePromptDialog(
-              updateRequestType: updateRequestType,
-            );
-          },
-        );
-      }
-    });
 
     return FutureBuilder<bool>(
       future: _isFirstLaunch(),
@@ -83,11 +79,7 @@ class MyApp extends HookConsumerWidget {
               useMaterial3: true,
             ),
             debugShowCheckedModeBanner: false,
-            home: authStateChanges.data == null
-                ? MyHomePage(
-                    title: 'YouniYou',
-                  )
-                : RootWidgets(),
+            home: authStateChanges.data == null ? MyHomePage() : RootWidgets(),
           );
         }
       },
@@ -108,18 +100,32 @@ class MyApp extends HookConsumerWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
-
+class MyHomePage extends ConsumerWidget {
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // updateの確認
+    final updateRequestType = ref.watch(updateRequesterProvider).whenOrNull(
+          skipLoadingOnRefresh: false,
+          data: (updateRequestType) => updateRequestType,
+        );
+    // デバッグ時は邪魔なので消す
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // アップデートがあった場合
+      if (updateRequestType == UpdateRequestType.cancelable || updateRequestType == UpdateRequestType.forcibly) {
+        // 新しいバージョンがある場合はダイアログを表示する
+        // barrierDismissible はダイアログ表示時の背景をタップしたときにダイアログを閉じてよいかどうか
+        // updateの案内を勝手に閉じて欲しくないのでbarrierDismissibleはfalse
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return UpdatePromptDialog(
+              updateRequestType: updateRequestType,
+            );
+          },
+        );
+      }
+    });
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
