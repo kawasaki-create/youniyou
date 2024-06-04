@@ -46,8 +46,8 @@ void main() async {
 class MyApp extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authStateChanges = useStream(FirebaseAuth.instance.authStateChanges());
-
+    final authStateStream = useMemoized(() => FirebaseAuth.instance.authStateChanges());
+    final authStateChanges = useStream(authStateStream);
     return FutureBuilder<bool>(
       future: _isFirstLaunch(),
       builder: (context, snapshot) {
@@ -79,7 +79,7 @@ class MyApp extends HookConsumerWidget {
               useMaterial3: true,
             ),
             debugShowCheckedModeBanner: false,
-            home: authStateChanges.data == null ? MyHomePage() : RootWidgets(),
+            home: authStateChanges.data == null ? LoginPage() : RootWidgets(),
           );
         }
       },
@@ -100,32 +100,9 @@ class MyApp extends HookConsumerWidget {
   }
 }
 
-class MyHomePage extends ConsumerWidget {
+class MyHomePage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // updateの確認
-    final updateRequestType = ref.watch(updateRequesterProvider).whenOrNull(
-          skipLoadingOnRefresh: false,
-          data: (updateRequestType) => updateRequestType,
-        );
-    // デバッグ時は邪魔なので消す
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // アップデートがあった場合
-      if (updateRequestType == UpdateRequestType.cancelable || updateRequestType == UpdateRequestType.forcibly) {
-        // 新しいバージョンがある場合はダイアログを表示する
-        // barrierDismissible はダイアログ表示時の背景をタップしたときにダイアログを閉じてよいかどうか
-        // updateの案内を勝手に閉じて欲しくないのでbarrierDismissibleはfalse
-        showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) {
-            return UpdatePromptDialog(
-              updateRequestType: updateRequestType,
-            );
-          },
-        );
-      }
-    });
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(

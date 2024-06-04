@@ -3,7 +3,8 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 // import 'package:youniyou/config/env.dart';
 
 // デバッグではenvをdevにしておく
-String env = 'development';
+// String env = 'development';
+String env = 'production';
 // String env = getEnv('ENV');
 //プラットホームごとのテスト広告IDを取得するメソッド
 String getTestAdBannerUnitId() {

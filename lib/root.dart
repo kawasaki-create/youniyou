@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:youniyou/common_widget/update_prompt_dialog.dart';
 import 'package:youniyou/emun/update_request_type.dart';
 import 'package:youniyou/feature/util/forced_update/update_request_provider.dart';
+import 'package:youniyou/main.dart';
 import 'package:youniyou/routes/friends_route.dart';
 import 'package:youniyou/routes/home_route.dart';
 import 'package:youniyou/routes/settings_route.dart';
@@ -41,18 +44,8 @@ class RootWidgets extends HookConsumerWidget {
           data: (updateRequestType) => updateRequestType,
         );
 
-    // ダイアログが表示されたかどうかを示すフラグ
-    bool _isDialogShown = false;
-
-    // デバッグ時は邪魔なので消す
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // アップデートがあった場合
-      if (!_isDialogShown && (updateRequestType == UpdateRequestType.cancelable || updateRequestType == UpdateRequestType.forcibly)) {
-        // フラグを設定
-        _isDialogShown = true;
-        // 新しいバージョンがある場合はダイアログを表示する
-        // barrierDismissible はダイアログ表示時の背景をタップしたときにダイアログを閉じてよいかどうか
-        // updateの案内を勝手に閉じて欲しくないのでbarrierDismissibleはfalse
+      if (updateRequestType == UpdateRequestType.cancelable || updateRequestType == UpdateRequestType.forcibly) {
         showDialog<void>(
           context: context,
           barrierDismissible: false,
@@ -258,34 +251,212 @@ class RootWidgets extends HookConsumerWidget {
 
     return ScaffoldMessenger(
       child: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: routes[selectedIndex],
-              ),
-              Text(updateRequestType.toString()),
-              SizedBox(
-                height: 50, // バナー広告の高さを固定する
-                child: AdWidget(
-                  ad: AdmobHelper.getBannerAd()..load(),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: routes[selectedIndex],
                 ),
-              ),
-            ],
+                TextButton(
+                  onPressed: () async {
+                    return showModalBottomSheet(
+                        context: context,
+                        builder: (context) {
+                          return Scaffold(
+                            body: Container(
+                              child: StatefulBuilder(builder: (context, StateSetter setState) {
+                                return SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        '有料会員登録',
+                                        style: TextStyle(fontSize: 25, decoration: TextDecoration.underline),
+                                      ),
+                                      Text(''),
+                                      Text('有料会員になると、以下の特典があります🤗'),
+                                      Card(
+                                        child: Column(
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Icon(Icons.add),
+                                                Text('　広告非表示'),
+                                              ],
+                                            ),
+                                            Text(''),
+                                            // Row(
+                                            //   children: [FaIcon(FontAwesomeIcons.penToSquare), Text('　つぶやき可能数1旅行あたり10件→無制限')],
+                                            // ),
+                                            // Text(''),
+                                            // Row(
+                                            //   children: [FaIcon(FontAwesomeIcons.suitcase), Text('　旅行プラン上限3件→無制限')],
+                                            // ),
+                                            // Text(''),
+                                            // Row(
+                                            //   children: [FaIcon(FontAwesomeIcons.book), Text('　旅行詳細登録上限20件→無制限')],
+                                            // ),
+                                            // Text(''),
+                                            // Row(
+                                            //   children: [FaIcon(FontAwesomeIcons.lightbulb), Text('　新機能の優先利用')],
+                                            // ),
+                                          ],
+                                        ),
+                                      ),
+                                      Text(''),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text('有料会員登録する　　'),
+                                          ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.grey,
+                                                foregroundColor: Colors.white,
+                                                elevation: 8,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(10),
+                                                ),
+                                              ),
+                                              onPressed: () async {
+                                                /// 購入アイテム（Package）取得
+                                                // final offerings = await Purchases.getOfferings();
+                                                // final package = offerings.current?.lifetime;
+                                                // if (package == null) {
+                                                //   return;
+                                                // }
+
+                                                // CustomerInfo customerInfo = await Purchases.restorePurchases();
+                                                // // ユーザーが購入済みかどうかを確認する
+                                                // bool isUserPurchased = customerInfo.activeSubscriptions.isNotEmpty || customerInfo.entitlements.active.isNotEmpty;
+
+                                                // // ユーザーが未購入の場合、適切な処理を行う
+                                                // // ...
+                                                // try {
+                                                //   /// 購入処理
+                                                //   await Purchases.purchasePackage(package);
+                                                //   // ここに最初の画面に戻る処理とsnackBar出す処理書く
+                                                //   await ScaffoldMessenger.of(context).showSnackBar(
+                                                //     const SnackBar(
+                                                //       content: Text('ご購入ありがとうございます。有料会員登録が完了しました😊'),
+                                                //     ),
+                                                //   );
+                                                //   await Future.delayed(Duration(seconds: 3));
+                                                //   // ログイン画面に遷移
+                                                //   await Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => MyApp()), (_) => false);
+                                                // } on PlatformException catch (e) {
+                                                //   /// エラーハンドリング
+                                                //   // ここに最初の画面に戻る処理とsnackBar出す処理書く
+                                                //   await ScaffoldMessenger.of(context).showSnackBar(
+                                                //     const SnackBar(
+                                                //       content: Text('購入処理に失敗しました🥲'),
+                                                //     ),
+                                                //   );
+                                                //   await Future.delayed(Duration(seconds: 3));
+                                                //   Navigator.of(context).pop();
+                                                // }
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Text('購入する')),
+                                        ],
+                                      ),
+                                      Text(''),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          elevation: 8,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                        onPressed: () async {
+                                          try {
+                                            CustomerInfo customerInfo = await Purchases.restorePurchases();
+                                            // ユーザーが購入済みかどうかを確認する
+                                            bool isUserPurchased = customerInfo.activeSubscriptions.isNotEmpty || customerInfo.entitlements.active.isNotEmpty;
+
+                                            if (isUserPurchased) {
+                                              // ユーザーが購入済みの場合、アラートダイアログを表示する
+                                              showDialog(
+                                                context: context,
+                                                builder: (BuildContext context) {
+                                                  return AlertDialog(
+                                                    title: Text('お知らせ'),
+                                                    content: Text('購入履歴の復元ができました。'),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () async {
+                                                          // Navigator.of(context).pop();
+                                                          // ログイン画面に遷移
+                                                          await Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => MyApp()), (_) => false);
+                                                        },
+                                                        child: Text('OK'),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            } else {
+                                              // ユーザーが未購入の場合、適切な処理を行う
+                                              // ...
+                                            }
+                                          } on PlatformException catch (e) {
+                                            // Error restoring purchases
+                                          }
+                                        },
+                                        child: Text('購入情報をリストアする'),
+                                      ),
+                                      // Text(''),
+                                      // TextButton(
+                                      //   onPressed: () async{
+                                      //     // ログイン画面に遷移
+                                      //    await ScaffoldMessenger.of(context).showSnackBar(
+                                      //       const SnackBar(
+                                      //         content: Text('ご購入ありがとうございます。有料会員登録が完了しました😊'),
+                                      //       ),
+                                      //     );
+                                      //    await Future.delayed(Duration(seconds: 3));
+                                      //    // ログイン画面に遷移
+                                      //    await Navigator.pushAndRemoveUntil(
+                                      //        context,
+                                      //        MaterialPageRoute(builder: (context) => const MyApp()),
+                                      //            (_) => false);
+                                      //   },
+                                      //   child: Text('デバッグ用MyApp戻る'),
+                                      // )
+                                    ],
+                                  ),
+                                );
+                              }),
+                            ),
+                          );
+                        });
+                  },
+                  child: Text('有料会員登録'),
+                ),
+                SizedBox(
+                  height: 50, // バナー広告の高さを固定する
+                  child: AdWidget(
+                    ad: AdmobHelper.getBannerAd()..load(),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          items: _bottomNavigationBarItems,
-          currentIndex: selectedIndex,
-          onTap: _onItemTapped,
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _showTodoDialog,
-          child: Icon(Icons.add),
-        ),
-      ),
+          bottomNavigationBar: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            items: _bottomNavigationBarItems,
+            currentIndex: selectedIndex,
+            onTap: _onItemTapped,
+          ),
+          floatingActionButton: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FloatingActionButton(
+                onPressed: _showTodoDialog,
+                child: Icon(Icons.add),
+              ),
+              SizedBox(height: 40),
+            ],
+          )),
     );
   }
 }

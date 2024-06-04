@@ -43,32 +43,32 @@ class UpdatePromptDialog extends ConsumerWidget {
       child: CupertinoAlertDialog(
         title: const Text('アプリが更新されました。\n\n最新バージョンのダウンロードをお願いします。'),
         actions: [
-          if (updateRequestType == UpdateRequestType.cancelable)
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                await ref
-                    .watch(sharedPreferencesRepositoryProvider)
-                    .save<String>(
-                      SharedPreferencesKey.cancelledUpdateDateTime,
-                      DateTime.now().toString(),
-                    );
-                ref.invalidate(updateRequesterProvider);
-              },
-              child: const Text('　キャンセル'),
-            ),
-            TextButton(
-              onPressed: () {
-                // App Store or Google Play に飛ばす処理
-                // プラットフォームに応じて適切なストアのリンクを開く
-                if (Theme.of(context).platform == TargetPlatform.android) {
-                  _launchStoreURL(googlePlayStoreLink);
-                } else if (Theme.of(context).platform == TargetPlatform.iOS) {
-                  _launchStoreURL(appStoreLink);
-                }
-              },
-              child: const Text('アップデートする'),
-            ),
+          // if (updateRequestType == UpdateRequestType.cancelable)
+          //   TextButton(
+          //     onPressed: () async {
+          //       Navigator.pop(context);
+          //       await ref
+          //           .watch(sharedPreferencesRepositoryProvider)
+          //           .save<String>(
+          //             SharedPreferencesKey.cancelledUpdateDateTime,
+          //             DateTime.now().toString(),
+          //           );
+          //       ref.invalidate(updateRequesterProvider);
+          //     },
+          //     child: const Text('　キャンセル'),
+          //   ),
+          TextButton(
+            onPressed: () {
+              // App Store or Google Play に飛ばす処理
+              // プラットフォームに応じて適切なストアのリンクを開く
+              if (Theme.of(context).platform == TargetPlatform.android) {
+                _launchStoreURL(googlePlayStoreLink);
+              } else if (Theme.of(context).platform == TargetPlatform.iOS) {
+                _launchStoreURL(appStoreLink);
+              }
+            },
+            child: const Text('アップデートする'),
+          ),
         ],
       ),
     );

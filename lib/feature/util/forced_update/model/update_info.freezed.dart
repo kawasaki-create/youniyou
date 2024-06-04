@@ -12,7 +12,7 @@ part of 'update_info.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
 UpdateInfo _$UpdateInfoFromJson(Map<String, dynamic> json) {
   return _UpdateInfo.fromJson(json);
@@ -31,22 +31,18 @@ mixin _$UpdateInfo {
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
-  $UpdateInfoCopyWith<UpdateInfo> get copyWith =>
-      throw _privateConstructorUsedError;
+  $UpdateInfoCopyWith<UpdateInfo> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $UpdateInfoCopyWith<$Res> {
-  factory $UpdateInfoCopyWith(
-          UpdateInfo value, $Res Function(UpdateInfo) then) =
-      _$UpdateInfoCopyWithImpl<$Res, UpdateInfo>;
+  factory $UpdateInfoCopyWith(UpdateInfo value, $Res Function(UpdateInfo) then) = _$UpdateInfoCopyWithImpl<$Res, UpdateInfo>;
   @useResult
   $Res call({String latestVersion, String requiredVersion, DateTime enabledAt});
 }
 
 /// @nodoc
-class _$UpdateInfoCopyWithImpl<$Res, $Val extends UpdateInfo>
-    implements $UpdateInfoCopyWith<$Res> {
+class _$UpdateInfoCopyWithImpl<$Res, $Val extends UpdateInfo> implements $UpdateInfoCopyWith<$Res> {
   _$UpdateInfoCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
@@ -79,23 +75,16 @@ class _$UpdateInfoCopyWithImpl<$Res, $Val extends UpdateInfo>
 }
 
 /// @nodoc
-abstract class _$$UpdateInfoImplCopyWith<$Res>
-    implements $UpdateInfoCopyWith<$Res> {
-  factory _$$UpdateInfoImplCopyWith(
-          _$UpdateInfoImpl value, $Res Function(_$UpdateInfoImpl) then) =
-      __$$UpdateInfoImplCopyWithImpl<$Res>;
+abstract class _$$_UpdateInfoCopyWith<$Res> implements $UpdateInfoCopyWith<$Res> {
+  factory _$$_UpdateInfoCopyWith(_$_UpdateInfo value, $Res Function(_$_UpdateInfo) then) = __$$_UpdateInfoCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String latestVersion, String requiredVersion, DateTime enabledAt});
 }
 
 /// @nodoc
-class __$$UpdateInfoImplCopyWithImpl<$Res>
-    extends _$UpdateInfoCopyWithImpl<$Res, _$UpdateInfoImpl>
-    implements _$$UpdateInfoImplCopyWith<$Res> {
-  __$$UpdateInfoImplCopyWithImpl(
-      _$UpdateInfoImpl _value, $Res Function(_$UpdateInfoImpl) _then)
-      : super(_value, _then);
+class __$$_UpdateInfoCopyWithImpl<$Res> extends _$UpdateInfoCopyWithImpl<$Res, _$_UpdateInfo> implements _$$_UpdateInfoCopyWith<$Res> {
+  __$$_UpdateInfoCopyWithImpl(_$_UpdateInfo _value, $Res Function(_$_UpdateInfo) _then) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -104,7 +93,7 @@ class __$$UpdateInfoImplCopyWithImpl<$Res>
     Object? requiredVersion = null,
     Object? enabledAt = null,
   }) {
-    return _then(_$UpdateInfoImpl(
+    return _then(_$_UpdateInfo(
       latestVersion: null == latestVersion
           ? _value.latestVersion
           : latestVersion // ignore: cast_nullable_to_non_nullable
@@ -123,14 +112,10 @@ class __$$UpdateInfoImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$UpdateInfoImpl implements _UpdateInfo {
-  const _$UpdateInfoImpl(
-      {required this.latestVersion,
-      required this.requiredVersion,
-      required this.enabledAt});
+class _$_UpdateInfo implements _UpdateInfo {
+  const _$_UpdateInfo({required this.latestVersion, required this.requiredVersion, required this.enabledAt});
 
-  factory _$UpdateInfoImpl.fromJson(Map<String, dynamic> json) =>
-      _$$UpdateInfoImplFromJson(json);
+  factory _$_UpdateInfo.fromJson(Map<String, dynamic> json) => _$$_UpdateInfoFromJson(json);
 
   /// 要求バージョン（任意）
   @override
@@ -150,45 +135,36 @@ class _$UpdateInfoImpl implements _UpdateInfo {
   }
 
   @override
-  bool operator ==(Object other) {
+  bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$UpdateInfoImpl &&
-            (identical(other.latestVersion, latestVersion) ||
-                other.latestVersion == latestVersion) &&
-            (identical(other.requiredVersion, requiredVersion) ||
-                other.requiredVersion == requiredVersion) &&
-            (identical(other.enabledAt, enabledAt) ||
-                other.enabledAt == enabledAt));
+            other is _$_UpdateInfo &&
+            (identical(other.latestVersion, latestVersion) || other.latestVersion == latestVersion) &&
+            (identical(other.requiredVersion, requiredVersion) || other.requiredVersion == requiredVersion) &&
+            (identical(other.enabledAt, enabledAt) || other.enabledAt == enabledAt));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, latestVersion, requiredVersion, enabledAt);
+  int get hashCode => Object.hash(runtimeType, latestVersion, requiredVersion, enabledAt);
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$UpdateInfoImplCopyWith<_$UpdateInfoImpl> get copyWith =>
-      __$$UpdateInfoImplCopyWithImpl<_$UpdateInfoImpl>(this, _$identity);
+  _$$_UpdateInfoCopyWith<_$_UpdateInfo> get copyWith => __$$_UpdateInfoCopyWithImpl<_$_UpdateInfo>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$UpdateInfoImplToJson(
+    return _$$_UpdateInfoToJson(
       this,
     );
   }
 }
 
 abstract class _UpdateInfo implements UpdateInfo {
-  const factory _UpdateInfo(
-      {required final String latestVersion,
-      required final String requiredVersion,
-      required final DateTime enabledAt}) = _$UpdateInfoImpl;
+  const factory _UpdateInfo({required final String latestVersion, required final String requiredVersion, required final DateTime enabledAt}) = _$_UpdateInfo;
 
-  factory _UpdateInfo.fromJson(Map<String, dynamic> json) =
-      _$UpdateInfoImpl.fromJson;
+  factory _UpdateInfo.fromJson(Map<String, dynamic> json) = _$_UpdateInfo.fromJson;
 
   @override
 
@@ -204,6 +180,5 @@ abstract class _UpdateInfo implements UpdateInfo {
   DateTime get enabledAt;
   @override
   @JsonKey(ignore: true)
-  _$$UpdateInfoImplCopyWith<_$UpdateInfoImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$_UpdateInfoCopyWith<_$_UpdateInfo> get copyWith => throw _privateConstructorUsedError;
 }
