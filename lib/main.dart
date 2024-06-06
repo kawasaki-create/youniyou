@@ -15,9 +15,12 @@ import 'emun/update_request_type.dart';
 import 'feature/util/forced_update/update_request_provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'admobHelper.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Purchases.setDebugLogsEnabled(true);
+  await Purchases.configure(PurchasesConfiguration("appl_hfFalSoPmwPUewcYATNwVWuwmcN"));
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

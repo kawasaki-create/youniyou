@@ -17,6 +17,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'admobHelper.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:youniyou/inAppPurchase.dart';
 
 final selectedIndexProvider = StateProvider<int>((ref) => 0);
 final todoProvider = StateProvider<Todo>((ref) => Todo());
@@ -263,248 +264,221 @@ class RootWidgets extends HookConsumerWidget {
                 TextButton(
                   onPressed: () async {
                     return showModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return Scaffold(
-                            body: Container(
-                              child: StatefulBuilder(builder: (context, StateSetter setState) {
+                      context: context,
+                      builder: (context) {
+                        return Scaffold(
+                          body: Container(
+                            child: StatefulBuilder(
+                              builder: (context, StateSetter setState) {
                                 return SingleChildScrollView(
-                                    child: Column(children: [
-                                  Text(
-                                    '有料会員登録',
-                                    style: TextStyle(fontSize: 25, decoration: TextDecoration.underline),
-                                  ),
-                                  Text(''),
-                                  Text('有料会員になると、以下の特典があります🤗'),
-                                  Card(
-                                    child: Column(
-                                      children: [
-                                        Row(
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        '有料会員登録',
+                                        style: TextStyle(fontSize: 25, decoration: TextDecoration.underline),
+                                      ),
+                                      Text(''),
+                                      Text('有料会員になると、以下の特典があります🤗'),
+                                      Card(
+                                        child: Column(
                                           children: [
-                                            Icon(Icons.add),
-                                            Text('　広告非表示'),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.add),
+                                                Text('　広告非表示'),
+                                              ],
+                                            ),
+                                            Text(''),
                                           ],
                                         ),
-                                        Text(''),
-                                        // Row(
-                                        //   children: [FaIcon(FontAwesomeIcons.penToSquare), Text('　つぶやき可能数1旅行あたり10件→無制限')],
-                                        // ),
-                                        // Text(''),
-                                        // Row(
-                                        //   children: [FaIcon(FontAwesomeIcons.suitcase), Text('　旅行プラン上限3件→無制限')],
-                                        // ),
-                                        // Text(''),
-                                        // Row(
-                                        //   children: [FaIcon(FontAwesomeIcons.book), Text('　旅行詳細登録上限20件→無制限')],
-                                        // ),
-                                        // Text(''),
-                                        // Row(
-                                        //   children: [FaIcon(FontAwesomeIcons.lightbulb), Text('　新機能の優先利用')],
-                                        // ),
-                                      ],
-                                    ),
-                                  ),
-                                  Text(''),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text('有料会員登録する　　'),
-                                      ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.grey,
-                                            foregroundColor: Colors.white,
-                                            elevation: 8,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(10),
-                                            ),
-                                          ),
-                                          onPressed: () async {
-                                            /// 購入アイテム（Package）取得
-                                            // final offerings = await Purchases.getOfferings();
-                                            // final package = offerings.current?.lifetime;
-                                            // if (package == null) {
-                                            //   return;
-                                            // }
-
-                                            // CustomerInfo customerInfo = await Purchases.restorePurchases();
-                                            // // ユーザーが購入済みかどうかを確認する
-                                            // bool isUserPurchased = customerInfo.activeSubscriptions.isNotEmpty || customerInfo.entitlements.active.isNotEmpty;
-
-                                            // // ユーザーが未購入の場合、適切な処理を行う
-                                            // // ...
-                                            // try {
-                                            //   /// 購入処理
-                                            //   await Purchases.purchasePackage(package);
-                                            //   // ここに最初の画面に戻る処理とsnackBar出す処理書く
-                                            //   await ScaffoldMessenger.of(context).showSnackBar(
-                                            //     const SnackBar(
-                                            //       content: Text('ご購入ありがとうございます。有料会員登録が完了しました😊'),
-                                            //     ),
-                                            //   );
-                                            //   await Future.delayed(Duration(seconds: 3));
-                                            //   // ログイン画面に遷移
-                                            //   await Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => MyApp()), (_) => false);
-                                            // } on PlatformException catch (e) {
-                                            //   /// エラーハンドリング
-                                            //   // ここに最初の画面に戻る処理とsnackBar出す処理書く
-                                            //   await ScaffoldMessenger.of(context).showSnackBar(
-                                            //     const SnackBar(
-                                            //       content: Text('購入処理に失敗しました🥲'),
-                                            //     ),
-                                            //   );
-                                            //   await Future.delayed(Duration(seconds: 3));
-                                            //   Navigator.of(context).pop();
-                                            // }
-                                            Navigator.of(context).pop();
-                                          },
-                                          child: Text('1ヶ月：¥300')),
-                                    ],
-                                  ),
-                                  Text(''),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      elevation: 8,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
                                       ),
-                                    ),
-                                    onPressed: () async {
-                                      try {
-                                        CustomerInfo customerInfo = await Purchases.restorePurchases();
-                                        // ユーザーが購入済みかどうかを確認する
-                                        bool isUserPurchased = customerInfo.activeSubscriptions.isNotEmpty || customerInfo.entitlements.active.isNotEmpty;
+                                      Text(''),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text('有料会員登録する　　'),
+                                          ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.grey,
+                                              foregroundColor: Colors.white,
+                                              elevation: 8,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                            ),
+                                            onPressed: () async {
+                                              final inAppPurchaseManager = ref.read(inAppPurchaseManagerProvider);
 
-                                        if (isUserPurchased) {
-                                          // ユーザーが購入済みの場合、アラートダイアログを表示する
-                                          showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return AlertDialog(
-                                                title: Text('お知らせ'),
-                                                content: Text('購入履歴の復元ができました。'),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () async {
-                                                      // Navigator.of(context).pop();
-                                                      // ログイン画面に遷移
-                                                      await Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => MyApp()), (_) => false);
-                                                    },
-                                                    child: Text('OK'),
+                                              /// 購入アイテム（Package）取得
+                                              final offerings = await Purchases.getOfferings();
+
+                                              try {
+                                                // // 初期化を行う
+                                                // await inAppPurchaseManager.initInAppPurchase();
+
+                                                // // 購入処理
+                                                // await inAppPurchaseManager.makePurchase('Monthly_subscription');
+
+                                                // 購入完了メッセージを表示
+                                                await ScaffoldMessenger.of(context).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text('ご購入ありがとうございます。有料会員登録が完了しました😊'),
+                                                  ),
+                                                );
+                                                await Future.delayed(Duration(seconds: 3));
+                                                // ログイン画面に遷移
+                                                await Navigator.pushAndRemoveUntil(
+                                                  context,
+                                                  MaterialPageRoute(builder: (context) => MyApp()),
+                                                  (_) => false,
+                                                );
+                                              } on PlatformException catch (e) {
+                                                // エラーハンドリング
+                                                await ScaffoldMessenger.of(context).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text('購入処理に失敗しました🥲'),
+                                                  ),
+                                                );
+                                                await Future.delayed(Duration(seconds: 3));
+                                                Navigator.of(context).pop();
+                                              }
+                                            },
+                                            child: Text('1ヶ月：¥300'),
+                                          ),
+                                        ],
+                                      ),
+                                      Text(''),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          elevation: 8,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                        onPressed: () async {
+                                          try {
+                                            CustomerInfo customerInfo = await Purchases.restorePurchases();
+                                            // ユーザーが購入済みかどうかを確認する
+                                            bool isUserPurchased = customerInfo.activeSubscriptions.isNotEmpty || customerInfo.entitlements.active.isNotEmpty;
+
+                                            if (isUserPurchased) {
+                                              // ユーザーが購入済みの場合、アラートダイアログを表示する
+                                              showDialog(
+                                                context: context,
+                                                builder: (BuildContext context) {
+                                                  return AlertDialog(
+                                                    title: Text('お知らせ'),
+                                                    content: Text('購入履歴の復元ができました。'),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () async {
+                                                          await Navigator.pushAndRemoveUntil(
+                                                            context,
+                                                            MaterialPageRoute(builder: (context) => MyApp()),
+                                                            (_) => false,
+                                                          );
+                                                        },
+                                                        child: Text('OK'),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            } else {
+                                              // ユーザーが未購入の場合、適切な処理を行う
+                                              // ...
+                                            }
+                                          } on PlatformException catch (e) {
+                                            // Error restoring purchases
+                                          }
+                                        },
+                                        child: Text('購入情報をリストアする'),
+                                      ),
+                                      SizedBox(height: 16),
+                                      Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              '購入の確認・注意事項',
+                                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                            ),
+                                            SizedBox(height: 16),
+                                            RichText(
+                                              text: TextSpan(
+                                                children: [
+                                                  TextSpan(
+                                                    text: '利用規約・プライバシーポリシー\n',
+                                                    style: TextStyle(fontSize: 16, color: Colors.black),
+                                                  ),
+                                                  TextSpan(
+                                                    text: 'プレミアムプランへの加入で、利用規約とプライバシーポリシーに同意いただいたとみなします。',
+                                                    style: TextStyle(fontSize: 16, color: Colors.black),
+                                                  ),
+                                                  TextSpan(
+                                                    text: '\n利用規約',
+                                                    style: TextStyle(fontSize: 16, color: Colors.blue, decoration: TextDecoration.underline),
+                                                    recognizer: TapGestureRecognizer()
+                                                      ..onTap = () {
+                                                        _launchURL('https://kawasaki-create.com/youniyou-eula/');
+                                                      },
+                                                  ),
+                                                  TextSpan(
+                                                    text: ' と ',
+                                                    style: TextStyle(fontSize: 16, color: Colors.black),
+                                                  ),
+                                                  TextSpan(
+                                                    text: 'プライバシーポリシー',
+                                                    style: TextStyle(fontSize: 16, color: Colors.blue, decoration: TextDecoration.underline),
+                                                    recognizer: TapGestureRecognizer()
+                                                      ..onTap = () {
+                                                        _launchURL('https://kawasaki-create.com/youniyou-privacy/');
+                                                      },
+                                                  ),
+                                                  TextSpan(
+                                                    text: ' に同意いただいたとみなします。',
+                                                    style: TextStyle(fontSize: 16, color: Colors.black),
                                                   ),
                                                 ],
-                                              );
-                                            },
-                                          );
-                                        } else {
-                                          // ユーザーが未購入の場合、適切な処理を行う
-                                          // ...
-                                        }
-                                      } on PlatformException catch (e) {
-                                        // Error restoring purchases
-                                      }
-                                    },
-                                    child: Text('購入情報をリストアする'),
+                                              ),
+                                            ),
+                                            SizedBox(height: 16),
+                                            Text(
+                                              '自動継続課金\n'
+                                              '契約期間は、期限が切れる24時間以内に自動更新の解除をされない場合、自動更新されます。',
+                                              style: TextStyle(fontSize: 16),
+                                            ),
+                                            SizedBox(height: 16),
+                                            Text(
+                                              '解約方法\n'
+                                              '設定>iTunes StoreとApp Store>Apple ID >Apple IDを表示>サブスクリプションからキャンセルで解約できます。',
+                                              style: TextStyle(fontSize: 16),
+                                            ),
+                                            SizedBox(height: 16),
+                                            Text(
+                                              '契約期間の確認\n'
+                                              '解約方法と同じ手順で契約期間の確認いただけます。',
+                                              style: TextStyle(fontSize: 16),
+                                            ),
+                                            SizedBox(height: 16),
+                                            Text(
+                                              '解約・キャンセル\n'
+                                              '解約は上記の方法以外では解約できません。また、キャンセルは翌月より反映されます。そのため、当月分のキャンセルは受け付けておりません。',
+                                              style: TextStyle(fontSize: 16),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
-
-                                  // Text(''),
-                                  // TextButton(
-                                  //   onPressed: () async{
-                                  //     // ログイン画面に遷移
-                                  //    await ScaffoldMessenger.of(context).showSnackBar(
-                                  //       const SnackBar(
-                                  //         content: Text('ご購入ありがとうございます。有料会員登録が完了しました😊'),
-                                  //       ),
-                                  //     );
-                                  //    await Future.delayed(Duration(seconds: 3));
-                                  //    // ログイン画面に遷移
-                                  //    await Navigator.pushAndRemoveUntil(
-                                  //        context,
-                                  //        MaterialPageRoute(builder: (context) => const MyApp()),
-                                  //            (_) => false);
-                                  //   },
-                                  //   child: Text('デバッグ用MyApp戻る'),
-                                  // )
-                                  SizedBox(height: 16),
-                                  Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '購入の確認・注意事項',
-                                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                        ),
-                                        SizedBox(height: 16),
-                                        RichText(
-                                          text: TextSpan(
-                                            children: [
-                                              TextSpan(
-                                                text: '利用規約・プライバシーポリシー\n',
-                                                style: TextStyle(fontSize: 16, color: Colors.black),
-                                              ),
-                                              TextSpan(
-                                                text: 'プレミアムプランへの加入で、利用規約とプライバシーポリシーに同意いただいたとみなします。',
-                                                style: TextStyle(fontSize: 16, color: Colors.black),
-                                              ),
-                                              TextSpan(
-                                                text: '\n利用規約',
-                                                style: TextStyle(fontSize: 16, color: Colors.blue, decoration: TextDecoration.underline),
-                                                recognizer: TapGestureRecognizer()
-                                                  ..onTap = () {
-                                                    _launchURL('https://kawasaki-create.com/youniyou-eula/');
-                                                  },
-                                              ),
-                                              TextSpan(
-                                                text: ' と ',
-                                                style: TextStyle(fontSize: 16, color: Colors.black),
-                                              ),
-                                              TextSpan(
-                                                text: 'プライバシーポリシー',
-                                                style: TextStyle(fontSize: 16, color: Colors.blue, decoration: TextDecoration.underline),
-                                                recognizer: TapGestureRecognizer()
-                                                  ..onTap = () {
-                                                    _launchURL('https://kawasaki-create.com/youniyou-privacy/');
-                                                  },
-                                              ),
-                                              TextSpan(
-                                                text: ' に同意いただいたとみなします。',
-                                                style: TextStyle(fontSize: 16, color: Colors.black),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        SizedBox(height: 16),
-                                        Text(
-                                          '自動継続課金\n'
-                                          '契約期間は、期限が切れる24時間以内に自動更新の解除をされない場合、自動更新されます。',
-                                          style: TextStyle(fontSize: 16),
-                                        ),
-                                        SizedBox(height: 16),
-                                        Text(
-                                          '解約方法\n'
-                                          '設定>iTunes StoreとApp Store>Apple ID >Apple IDを表示>サブスクリプションからキャンセルで解約できます。',
-                                          style: TextStyle(fontSize: 16),
-                                        ),
-                                        SizedBox(height: 16),
-                                        Text(
-                                          '契約期間の確認\n'
-                                          '解約方法と同じ手順で契約期間の確認いただけます。',
-                                          style: TextStyle(fontSize: 16),
-                                        ),
-                                        SizedBox(height: 16),
-                                        Text(
-                                          '解約・キャンセル\n'
-                                          '解約は上記の方法以外では解約できません。また、キャンセルは翌月より反映されます。そのため、当月分のキャンセルは受け付けておりません。',
-                                          style: TextStyle(fontSize: 16),
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                ]));
-                              }),
+                                );
+                              },
                             ),
-                          );
-                        });
+                          ),
+                        );
+                      },
+                    );
                   },
                   child: Text('有料会員登録'),
                 ),
