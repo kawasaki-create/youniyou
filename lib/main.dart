@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:youniyou/feature/util/shared_preferences/shared_preferences_repository.dart';
 import 'package:youniyou/firebase_options.dart';
+import 'package:youniyou/inAppPurchase.dart';
 import 'package:youniyou/root.dart';
 import 'package:youniyou/login_page.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -21,6 +22,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Purchases.setDebugLogsEnabled(true);
   await Purchases.configure(PurchasesConfiguration("appl_hfFalSoPmwPUewcYATNwVWuwmcN"));
+  final revenueCat = RevenueCat();
+  await revenueCat.initRC();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -82,7 +85,7 @@ class MyApp extends HookConsumerWidget {
               useMaterial3: true,
             ),
             debugShowCheckedModeBanner: false,
-            home: authStateChanges.data == null ? LoginPage() : RootWidgets(),
+            home: authStateChanges.data == null ? MyHomePage() : RootWidgets(),
           );
         }
       },

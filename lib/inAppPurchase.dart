@@ -105,6 +105,7 @@ class RevenueCat {
       await Purchases.setup(revenueCatAPIKey, appUserId: uid);
     } on PlatformException catch (e) {
       /// エラーハンドリング
+      print("Error initializing RevenueCat: $e");
     }
   }
 
@@ -114,6 +115,7 @@ class RevenueCat {
     final offerings = await Purchases.getOfferings();
     final package = offerings.current?.monthly;
     if (package == null) {
+      print("No package available for purchase");
       return;
     }
 
@@ -122,6 +124,7 @@ class RevenueCat {
       await Purchases.purchasePackage(package);
     } on PlatformException catch (e) {
       /// エラーハンドリング
+      print("Error during purchase: $e");
     }
   }
 
@@ -130,14 +133,16 @@ class RevenueCat {
     try {
       /// サブスクリプション（Entitlement）取得
       final customerInfo = await Purchases.getCustomerInfo();
-      const entitlementId = 'pro';
+      const entitlementId = 'pro'; // RevenueCatダッシュボードで設定したEntitlement ID
       final entitlement = customerInfo.entitlements.all[entitlementId];
       if (entitlement == null) {
+        print("Entitlement not found for ID: $entitlementId");
         return false;
       }
 
       /// サブスクリプション状態取得（有効or無効）
       final isSubscribing = entitlement.isActive;
+      print("Subscription status for $entitlementId: $isSubscribing");
       return isSubscribing;
     } catch (e) {
       // エラーハンドリング

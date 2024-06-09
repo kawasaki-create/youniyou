@@ -17,6 +17,13 @@ import 'package:youniyou/login_page.dart';
 import 'package:youniyou/main.dart';
 import 'package:youniyou/todo.dart';
 
+// DateTime extension をここに定義
+extension DateTimeExtension on DateTime {
+  bool isSameDay(DateTime other) {
+    return this.year == other.year && this.month == other.month && this.day == other.day;
+  }
+}
+
 class Home extends HookConsumerWidget {
   const Home({super.key});
 
@@ -149,7 +156,7 @@ class Home extends HookConsumerWidget {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('予定がありません'));
+            return Center(child: Text('予定がありません。＋ボタンから追加してください。'));
           }
 
           final events = <DateTime, List<Meeting>>{};
