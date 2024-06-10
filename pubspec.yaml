@@ -60,7 +60,7 @@ dependencies:
   flutter_launcher_icons: ^0.13.1
   firebase_remote_config: ^4.4.7
   url_launcher: ^6.2.6
-  package_info_plus: ^8.0.0
+  package_info_plus: ^7.0.0
   freezed_annotation: ^2.4.1
   flutter_local_notifications: ^17.1.2
   google_mobile_ads: ^5.1.0
