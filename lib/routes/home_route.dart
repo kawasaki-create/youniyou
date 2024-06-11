@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -13,6 +14,7 @@ import 'package:crypto/crypto.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
+import 'package:youniyou/inAppPurchase.dart';
 import 'package:youniyou/login_page.dart';
 import 'package:youniyou/main.dart';
 import 'package:youniyou/todo.dart';
@@ -155,9 +157,18 @@ class Home extends HookConsumerWidget {
             return Center(child: Text('エラーが発生しました: ${snapshot.error}'));
           }
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('予定がありません。＋ボタンから追加してください。'));
-          }
+          // if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          //   return Center(child: Text('予定がありません。＋ボタンから追加してください。'));
+          // }
+
+          // ユーザーがサブスクリプションしているかどうかを表示
+          // return SelectableText(RevenueCat().isSubscribed());
+          return ElevatedButton(
+            onPressed: () {
+              print(RevenueCat().isSubscribed());
+            },
+            child: Text('サブスクリプション'),
+          );
 
           final events = <DateTime, List<Meeting>>{};
 
