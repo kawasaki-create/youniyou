@@ -92,7 +92,7 @@ class InAppPurchaseManager extends ChangeNotifier {
 class RevenueCat {
   /// RevenueCatの初期化
   Future<void> initRC() async {
-    final androidAPIKey = 'AndroidのAPIキー';
+    final androidAPIKey = 'goog_iQErEaMQLgJYuACXSxXKdcnZvIh';
     final iosAPIKey = 'appl_hfFalSoPmwPUewcYATNwVWuwmcN';
     final revenueCatAPIKey = Platform.isAndroid ? androidAPIKey : iosAPIKey;
 
