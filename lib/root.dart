@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -101,7 +103,7 @@ class RootWidgets extends HookConsumerWidget {
       DateTime? endDateTime = todo.endDateTime;
 
       // 友達の数を取得して制限をチェック
-      if (friends.length >= 5 && !await RevenueCat().isSubscribed()) {
+      if (friends.length >= 5 && !isSubscribed) {
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -491,11 +493,18 @@ class RootWidgets extends HookConsumerWidget {
                                                 style: TextStyle(fontSize: 16),
                                               ),
                                               SizedBox(height: 16),
-                                              Text(
-                                                '解約方法\n'
-                                                '設定>iTunes StoreとApp Store>Apple ID >Apple IDを表示>サブスクリプションからキャンセルで解約できます。',
-                                                style: TextStyle(fontSize: 16),
-                                              ),
+                                              if (Platform.isIOS)
+                                                Text(
+                                                  '解約方法\n'
+                                                  '設定>iTunes StoreとApp Store>Apple ID >Apple IDを表示>サブスクリプションからキャンセルで解約できます。',
+                                                  style: TextStyle(fontSize: 16),
+                                                ),
+                                              if (Platform.isAndroid)
+                                                Text(
+                                                  '解約方法\n'
+                                                  'Google Playストアアプリ>メニュー>アカウント>サブスクリプションからキャンセルで解約できます。',
+                                                  style: TextStyle(fontSize: 16),
+                                                ),
                                               SizedBox(height: 16),
                                               Text(
                                                 '契約期間の確認\n'
