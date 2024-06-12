@@ -40,6 +40,12 @@ class Home extends HookConsumerWidget {
 
     final calendarFormat = useState(CalendarFormat.month);
     final focusedDay = useState(DateTime.now());
+    final debugTxt = useState('ここにサブスクテキスト');
+
+    void checkSubscription() async {
+      bool isSubscribed = await RevenueCat().isSubscribed();
+      debugTxt.value = isSubscribed.toString();
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -163,11 +169,17 @@ class Home extends HookConsumerWidget {
 
           // ユーザーがサブスクリプションしているかどうかを表示
           // return SelectableText(RevenueCat().isSubscribed());
-          return ElevatedButton(
-            onPressed: () {
-              print(RevenueCat().isSubscribed());
-            },
-            child: Text('サブスクリプション'),
+          return Column(
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  checkSubscription();
+                  print('サブスク状態はこちらです' + debugTxt.value);
+                },
+                child: Text('サブスクリプション'),
+              ),
+              SelectableText(debugTxt.value),
+            ],
           );
 
           final events = <DateTime, List<Meeting>>{};

@@ -20,10 +20,11 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Purchases.setDebugLogsEnabled(true);
-  await Purchases.configure(PurchasesConfiguration("appl_hfFalSoPmwPUewcYATNwVWuwmcN"));
+  // await Purchases.setDebugLogsEnabled(true);
+  // await Purchases.configure(PurchasesConfiguration("appl_hfFalSoPmwPUewcYATNwVWuwmcN"));
   final revenueCat = RevenueCat();
   await revenueCat.initRC();
+  await RevenueCat().isSubscribed();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -54,6 +55,10 @@ class MyApp extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authStateStream = useMemoized(() => FirebaseAuth.instance.authStateChanges());
     final authStateChanges = useStream(authStateStream);
+
+    // アプリ起動時にサブスクリプション状態をチェック
+    ref.read(subscriptionProvider.notifier).checkSubscription();
+
     return FutureBuilder<bool>(
       future: _isFirstLaunch(),
       builder: (context, snapshot) {
@@ -173,3 +178,16 @@ class MyHomePage extends HookConsumerWidget {
     );
   }
 }
+
+class SubscriptionNotifier extends StateNotifier<bool> {
+  SubscriptionNotifier() : super(false);
+
+  Future<void> checkSubscription() async {
+    bool isSubscribed = await RevenueCat().isSubscribed();
+    state = isSubscribed;
+  }
+}
+
+final subscriptionProvider = StateNotifierProvider<SubscriptionNotifier, bool>(
+  (ref) => SubscriptionNotifier(),
+);

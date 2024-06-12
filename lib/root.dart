@@ -42,8 +42,10 @@ class RootWidgets extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Admobの初期化
     AdmobHelper admobHelper = AdmobHelper();
-    final revenueCat = RevenueCat();
-    revenueCat.initRC();
+    // final revenueCat = RevenueCat();
+    // revenueCat.initRC();
+    final isSubscribed = ref.watch(subscriptionProvider);
+
     // updateの確認
     final updateRequestType = ref.watch(updateRequesterProvider).whenOrNull(
           skipLoadingOnRefresh: false,
@@ -286,7 +288,7 @@ class RootWidgets extends HookConsumerWidget {
                 Expanded(
                   child: routes[selectedIndex],
                 ),
-                if (RevenueCat().isSubscribed() == false)
+                if (isSubscribed == false)
                   TextButton(
                     onPressed: () async {
                       return showModalBottomSheet(
@@ -521,7 +523,7 @@ class RootWidgets extends HookConsumerWidget {
                     },
                     child: Text('有料会員登録'),
                   ),
-                if (RevenueCat().isSubscribed() == false)
+                if (isSubscribed == false)
                   SizedBox(
                     height: 50, // バナー広告の高さを固定する
                     child: AdWidget(
