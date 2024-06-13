@@ -335,7 +335,7 @@ class RootWidgets extends HookConsumerWidget {
                                                       content: Text('ご購入ありがとうございます。有料会員登録が完了しました😊'),
                                                     ),
                                                   );
-                                                  await Future.delayed(Duration(seconds: 3));
+                                                  await Future.delayed(Duration(seconds: 1));
                                                   // ログイン画面に遷移
                                                   await Navigator.pushAndRemoveUntil(
                                                     context,
@@ -349,7 +349,7 @@ class RootWidgets extends HookConsumerWidget {
                                                       content: Text('購入処理に失敗しました🥲'),
                                                     ),
                                                   );
-                                                  await Future.delayed(Duration(seconds: 3));
+                                                  await Future.delayed(Duration(seconds: 1));
                                                   Navigator.of(context).pop();
                                                 }
                                               },

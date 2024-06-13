@@ -17,6 +17,7 @@ import 'package:intl/intl.dart';
 import 'package:youniyou/inAppPurchase.dart';
 import 'package:youniyou/login_page.dart';
 import 'package:youniyou/main.dart';
+import 'package:youniyou/root.dart';
 import 'package:youniyou/todo.dart';
 
 // DateTime extension をここに定義
@@ -91,6 +92,16 @@ class Home extends HookConsumerWidget {
                 );
               },
             ),
+          // IconButton(
+          //   onPressed: () async {
+          //     await Navigator.pushAndRemoveUntil(
+          //       context,
+          //       MaterialPageRoute(builder: (context) => MyApp()),
+          //       (_) => false,
+          //     );
+          //   },
+          //   icon: Icon(Icons.payment),
+          // ),
           IconButton(
             icon: Icon(Icons.person_remove),
             onPressed: () async {

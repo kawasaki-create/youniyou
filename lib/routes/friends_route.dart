@@ -177,12 +177,15 @@ class Friends extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = FirebaseAuth.instance.currentUser;
     final isSubscribed = ref.watch(subscriptionProvider);
+    final isBan = useState(true);
+    final isBanAdd = useState(true);
 
     Future _subscsribeOffDialog() async {
       final friendsSnapshot = await FirebaseFirestore.instance.collection('friends').where('user_id', isEqualTo: user?.uid).get();
       final friends = friendsSnapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
 
       if (friends.length >= 6 && !isSubscribed) {
+        isBan.value = true;
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -201,6 +204,8 @@ class Friends extends HookConsumerWidget {
           },
         );
         return;
+      } else {
+        isBan.value = false;
       }
     }
 
@@ -209,6 +214,7 @@ class Friends extends HookConsumerWidget {
       final friends = friendsSnapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
 
       if (friends.length >= 5 && !isSubscribed) {
+        isBanAdd.value = true;
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -227,6 +233,8 @@ class Friends extends HookConsumerWidget {
           },
         );
         return;
+      } else {
+        isBanAdd.value = false;
       }
     }
 
@@ -268,6 +276,7 @@ class Friends extends HookConsumerWidget {
               onPressed: () async {
                 // 友達の数を取得して制限をチェック
                 _subscsribeOffAddDialog();
+                if (isBanAdd.value) return;
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
@@ -288,6 +297,7 @@ class Friends extends HookConsumerWidget {
                   onTap: () {
                     // トーク画面に遷移
                     _subscsribeOffDialog();
+                    if (isBan.value) return;
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -300,6 +310,7 @@ class Friends extends HookConsumerWidget {
                       onTap: () {
                         // 友達編集モーダルを表示
                         _subscsribeOffDialog();
+                        if (isBan.value) return;
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
@@ -350,6 +361,7 @@ class Friends extends HookConsumerWidget {
                           onPressed: () {
                             // クロード画面に遷移
                             _subscsribeOffDialog();
+                            if (isBan.value) return;
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -363,6 +375,7 @@ class Friends extends HookConsumerWidget {
                           onPressed: () {
                             // 予定一覧画面に遷移
                             _subscsribeOffDialog();
+                            if (isBan.value) return;
                             Navigator.push(
                               context,
                               MaterialPageRoute(
