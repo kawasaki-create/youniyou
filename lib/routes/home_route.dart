@@ -163,24 +163,23 @@ class Home extends HookConsumerWidget {
             return Center(child: Text('エラーが発生しました: ${snapshot.error}'));
           }
 
-          // if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          //   return Center(child: Text('予定がありません。＋ボタンから追加してください。'));
-          // }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Center(child: Text('予定がありません。＋ボタンから追加してください。'));
+          }
 
           // ユーザーがサブスクリプションしているかどうかを表示
-          // return SelectableText(RevenueCat().isSubscribed());
-          return Column(
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  checkSubscription();
-                  print('サブスク状態はこちらです' + debugTxt.value);
-                },
-                child: Text('サブスクリプション'),
-              ),
-              SelectableText(debugTxt.value),
-            ],
-          );
+          // return Column(
+          //   children: [
+          //     ElevatedButton(
+          //       onPressed: () {
+          //         checkSubscription();
+          //         print('サブスク状態はこちらです' + debugTxt.value);
+          //       },
+          //       child: Text('サブスクリプション'),
+          //     ),
+          //     SelectableText(debugTxt.value),
+          //   ],
+          // );
 
           final events = <DateTime, List<Meeting>>{};
 

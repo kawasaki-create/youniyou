@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:youniyou/chats.dart';
+import 'package:youniyou/main.dart';
 import 'package:youniyou/plan.dart';
 import 'package:youniyou/claude.dart';
 
@@ -175,6 +176,59 @@ class Friends extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = FirebaseAuth.instance.currentUser;
+    final isSubscribed = ref.watch(subscriptionProvider);
+
+    Future _subscsribeOffDialog() async {
+      final friendsSnapshot = await FirebaseFirestore.instance.collection('friends').where('user_id', isEqualTo: user?.uid).get();
+      final friends = friendsSnapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+
+      if (friends.length >= 6 && !isSubscribed) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('友達数制限'),
+              content: Text('無料会員の場合、友達は最大5人までです。機能を利用する場合、友達を削除するか有料会員になると制限が解除されます。'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+        return;
+      }
+    }
+
+    Future _subscsribeOffAddDialog() async {
+      final friendsSnapshot = await FirebaseFirestore.instance.collection('friends').where('user_id', isEqualTo: user?.uid).get();
+      final friends = friendsSnapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+
+      if (friends.length >= 5 && !isSubscribed) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('友達の追加制限'),
+              content: Text('無料会員の場合、友達の追加は最大5人までです。これ以上友達を増やす場合、有料会員になると制限が解除されます。'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+        return;
+      }
+    }
 
     // Firestoreからデータを取得するStream
     final _friendsStream = useMemoized(() {
@@ -211,7 +265,9 @@ class Friends extends HookConsumerWidget {
           actions: [
             IconButton(
               icon: Icon(Icons.person_add_alt_1_rounded),
-              onPressed: () {
+              onPressed: () async {
+                // 友達の数を取得して制限をチェック
+                _subscsribeOffAddDialog();
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
@@ -231,6 +287,7 @@ class Friends extends HookConsumerWidget {
                 return GestureDetector(
                   onTap: () {
                     // トーク画面に遷移
+                    _subscsribeOffDialog();
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -242,6 +299,7 @@ class Friends extends HookConsumerWidget {
                     leading: GestureDetector(
                       onTap: () {
                         // 友達編集モーダルを表示
+                        _subscsribeOffDialog();
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
@@ -291,6 +349,7 @@ class Friends extends HookConsumerWidget {
                         IconButton(
                           onPressed: () {
                             // クロード画面に遷移
+                            _subscsribeOffDialog();
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -303,6 +362,7 @@ class Friends extends HookConsumerWidget {
                         TextButton(
                           onPressed: () {
                             // 予定一覧画面に遷移
+                            _subscsribeOffDialog();
                             Navigator.push(
                               context,
                               MaterialPageRoute(

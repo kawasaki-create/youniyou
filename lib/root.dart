@@ -102,28 +102,6 @@ class RootWidgets extends HookConsumerWidget {
       DateTime? startDateTime = todo.startDateTime;
       DateTime? endDateTime = todo.endDateTime;
 
-      // 友達の数を取得して制限をチェック
-      if (friends.length >= 5 && !isSubscribed) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('友達の追加制限'),
-              content: Text('無料会員の場合、友達の追加は最大5人までです。有料会員になると制限が解除されます。'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            );
-          },
-        );
-        return;
-      }
-
       await showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -318,7 +296,12 @@ class RootWidgets extends HookConsumerWidget {
                                                   Text('　広告非表示'),
                                                 ],
                                               ),
-                                              Text(''),
+                                              Row(
+                                                children: [
+                                                  FaIcon(FontAwesomeIcons.userPlus),
+                                                  Text('　6人以上の友達追加'),
+                                                ],
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -343,12 +326,6 @@ class RootWidgets extends HookConsumerWidget {
                                                 final offerings = await Purchases.getOfferings();
 
                                                 try {
-                                                  // // 初期化を行う
-                                                  // await inAppPurchaseManager.initInAppPurchase();
-
-                                                  // // 購入処理
-                                                  // await inAppPurchaseManager.makePurchase('Monthly_subscription');
-
                                                   // 購入処理
                                                   await RevenueCat().purchase();
 
