@@ -51,6 +51,8 @@ void main() async {
 }
 
 class MyApp extends HookConsumerWidget {
+  final Future<bool> _isFirstLaunchFuture = _isFirstLaunch();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authStateStream = useMemoized(() => FirebaseAuth.instance.authStateChanges());
@@ -60,16 +62,27 @@ class MyApp extends HookConsumerWidget {
     ref.read(subscriptionProvider.notifier).checkSubscription();
 
     return FutureBuilder<bool>(
-      future: _isFirstLaunch(),
+      future: _isFirstLaunchFuture,
       builder: (context, snapshot) {
-        // if (snapshot.connectionState == ConnectionState.waiting) {
-        //   return MaterialApp(
-        //     home: Scaffold(
-        //       body: Center(child: CircularProgressIndicator()),
-        //     ),
-        //   );
-        // }
+        // 非同期操作が完了するまで待つ
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return MaterialApp(
+            home: Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
+          );
+        }
 
+        // エラーが発生した場合の処理
+        if (snapshot.hasError) {
+          return MaterialApp(
+            home: Scaffold(
+              body: Center(child: Text("Error: ${snapshot.error}")),
+            ),
+          );
+        }
+
+        // 初回起動かどうかを確認して表示するページを決定
         if (snapshot.data == true) {
           return MaterialApp(
             title: 'Flutter Demo',
@@ -97,17 +110,13 @@ class MyApp extends HookConsumerWidget {
     );
   }
 
-  Future<bool> _isFirstLaunch() async {
-    // デバッグで初回起動を確認するためにコメントアウト
-
+  static Future<bool> _isFirstLaunch() async {
     final prefs = await SharedPreferences.getInstance();
     final isFirstLaunch = prefs.getBool('isAlreadyFirstLaunch') ?? true;
     if (isFirstLaunch) {
       prefs.setBool('isAlreadyFirstLaunch', false);
     }
     return isFirstLaunch;
-    // // return true;
-    // return false;
   }
 }
 
