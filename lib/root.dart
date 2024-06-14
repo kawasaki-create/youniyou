@@ -44,6 +44,7 @@ class RootWidgets extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Admobの初期化
     AdmobHelper admobHelper = AdmobHelper();
+    admobHelper.loadInterstitialAd();
     // final revenueCat = RevenueCat();
     // revenueCat.initRC();
     final isSubscribed = ref.watch(subscriptionProvider);

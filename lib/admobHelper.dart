@@ -66,8 +66,8 @@ class AdmobHelper implements RewardedAdLoadCallback, FullScreenContentCallback {
     } else {
       // ここ適当だから実際のコード入れる
       return Platform.isAndroid
-          ? 'ca-app-pub-1568606156833955/9463786776' // Androidの本番用広告ユニットID
-          : 'ca-app-pub-1568606156833955/7779170011'; // iOSの本番用広告ユニットID
+          ? 'ca-app-pub-1568606156833955/8587320777' // Androidの本番用広告ユニットID
+          : 'ca-app-pub-1568606156833955/8786152392'; // iOSの本番用広告ユニットID
     }
   }
 
