@@ -21,6 +21,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'admobHelper.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:youniyou/inAppPurchase.dart';
+import 'dart:math' as math;
 
 final selectedIndexProvider = StateProvider<int>((ref) => 0);
 final todoProvider = StateProvider<Todo>((ref) => Todo());
@@ -79,6 +80,10 @@ class RootWidgets extends HookConsumerWidget {
 
     void _onItemTapped(int index) {
       ref.read(selectedIndexProvider.notifier).state = index;
+      var random = math.Random().nextInt(10);
+      if (isSubscribed == false && random % 3 == 0) {
+        admobHelper.showInterstitialAd();
+      }
     }
 
     List<BottomNavigationBarItem> _bottomNavigationBarItems = List.generate(
@@ -105,6 +110,7 @@ class RootWidgets extends HookConsumerWidget {
 
       await showDialog(
         context: context,
+        barrierDismissible: false,
         builder: (BuildContext context) {
           return StatefulBuilder(
             builder: (context, setState) {

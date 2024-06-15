@@ -177,8 +177,8 @@ class Friends extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = FirebaseAuth.instance.currentUser;
     final isSubscribed = ref.watch(subscriptionProvider);
-    final isBan = useState(true);
-    final isBanAdd = useState(true);
+    final isBan = useState(false);
+    final isBanAdd = useState(false);
 
     Future _subscsribeOffDialog() async {
       final friendsSnapshot = await FirebaseFirestore.instance.collection('friends').where('user_id', isEqualTo: user?.uid).get();
@@ -267,73 +267,75 @@ class Friends extends HookConsumerWidget {
     }
 
     return Scaffold(
-        appBar: AppBar(
-          title: Text('友達'),
-          backgroundColor: Colors.cyan[100],
-          actions: [
-            IconButton(
-              icon: Icon(Icons.person_add_alt_1_rounded),
-              onPressed: () async {
-                // 友達の数を取得して制限をチェック
-                _subscsribeOffAddDialog();
-                if (isBanAdd.value) return;
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (BuildContext context) {
-                    return FriendModal();
-                  },
-                );
-              },
-              iconSize: 30,
-            ),
-          ],
-        ),
-        body: ListView(
-          children: snapshot.data!.docs
-              .map((DocumentSnapshot document) {
-                Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
-                return GestureDetector(
-                  onTap: () {
-                    // トーク画面に遷移
-                    _subscsribeOffDialog();
-                    if (isBan.value) return;
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChatScreen(friendId: document.id, friendName: data['name']),
-                      ),
-                    );
-                  },
-                  child: ListTile(
-                    leading: GestureDetector(
-                      onTap: () {
-                        // 友達編集モーダルを表示
-                        _subscsribeOffDialog();
-                        if (isBan.value) return;
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          builder: (BuildContext context) {
-                            return FriendModal(
-                              friendId: document.id,
-                              friendName: data['name'],
-                              friendIcon: data['icon'],
-                            );
-                          },
-                        );
-                      },
-                      child: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(data['icon']),
-                        ),
+      appBar: AppBar(
+        title: Text('友達'),
+        backgroundColor: Colors.cyan[100],
+        actions: [
+          IconButton(
+            icon: Icon(Icons.person_add_alt_1_rounded),
+            onPressed: () async {
+              // 友達の数を取得して制限をチェック
+              await _subscsribeOffAddDialog();
+              if (isBanAdd.value) return;
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (BuildContext context) {
+                  return FriendModal();
+                },
+              );
+            },
+            iconSize: 30,
+          ),
+        ],
+      ),
+      body: ListView(
+        children: snapshot.data!.docs
+            .map((DocumentSnapshot document) {
+              Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+              return GestureDetector(
+                onTap: () async {
+                  // トーク画面に遷移
+                  await _subscsribeOffDialog();
+                  if (isBan.value) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChatScreen(friendId: document.id, friendName: data['name']),
+                    ),
+                  );
+                },
+                child: ListTile(
+                  leading: GestureDetector(
+                    onTap: () async {
+                      // 友達編集モーダルを表示
+                      await _subscsribeOffDialog();
+                      if (isBan.value) return;
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (BuildContext context) {
+                          return FriendModal(
+                            friendId: document.id,
+                            friendName: data['name'],
+                            friendIcon: data['icon'],
+                          );
+                        },
+                      );
+                    },
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(data['icon']),
                       ),
                     ),
-                    title: Text(data['name']),
-                    subtitle: FutureBuilder(
+                  ),
+                  title: Text(data['name']),
+                  subtitle: Container(
+                    width: MediaQuery.of(context).size.width * 0.6, // 幅を調整
+                    child: FutureBuilder(
                       future: FirebaseFirestore.instance.collection('chats').doc(document.id).collection('messages').orderBy('timestamp', descending: true).limit(1).get().then((snapshot) => snapshot.docs.isNotEmpty ? snapshot.docs.first : null),
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
@@ -344,7 +346,11 @@ class Friends extends HookConsumerWidget {
                             } else {
                               String text = messageData['text'] ?? '';
                               List<String> lines = text.split('\n');
-                              return Text(lines.isNotEmpty ? lines.first : '');
+                              String displayText = lines.isNotEmpty ? lines.first : '';
+                              if (displayText.length > 5) {
+                                displayText = displayText.substring(0, 5) + '...';
+                              }
+                              return Text(displayText);
                             }
                           } else {
                             return Text('トークを始めましょう');
@@ -354,74 +360,76 @@ class Friends extends HookConsumerWidget {
                         }
                       },
                     ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            // クロード画面に遷移
-                            _subscsribeOffDialog();
-                            if (isBan.value) return;
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => Claude(friendId: document.id, friendName: data['name']),
-                              ),
-                            );
-                          },
-                          icon: Icon(Icons.psychology_outlined),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            // 予定一覧画面に遷移
-                            _subscsribeOffDialog();
-                            if (isBan.value) return;
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => Plan(friendId: document.id),
-                              ),
-                            );
-                          },
-                          child: Text('予定一覧'),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: Text('友達の削除'),
-                                  content: Text('本当に削除しますか？もどせません'),
-                                  actions: [
-                                    TextButton(
-                                      child: Text('キャンセル'),
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
-                                    TextButton(
-                                      child: Text('OK'),
-                                      onPressed: () {
-                                        // 友達を削除
-                                        FirebaseFirestore.instance.collection('friends').doc(document.id).delete();
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ],
-                    ),
                   ),
-                );
-              })
-              .cast<Widget>()
-              .toList(),
-        ));
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        onPressed: () async {
+                          // クロード画面に遷移
+                          await _subscsribeOffDialog();
+                          if (isBan.value) return;
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Claude(friendId: document.id, friendName: data['name']),
+                            ),
+                          );
+                        },
+                        icon: Icon(Icons.psychology_outlined),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          // 予定一覧画面に遷移
+                          await _subscsribeOffDialog();
+                          if (isBan.value) return;
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Plan(friendId: document.id),
+                            ),
+                          );
+                        },
+                        child: Text('予定一覧'),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('友達の削除'),
+                                content: Text('本当に削除しますか？もどせません'),
+                                actions: [
+                                  TextButton(
+                                    child: Text('キャンセル'),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  TextButton(
+                                    child: Text('OK'),
+                                    onPressed: () {
+                                      // 友達を削除
+                                      FirebaseFirestore.instance.collection('friends').doc(document.id).delete();
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            })
+            .cast<Widget>()
+            .toList(),
+      ),
+    );
   }
 }
