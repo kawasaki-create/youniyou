@@ -143,6 +143,8 @@ class RevenueCat {
       /// サブスクリプション状態取得（有効or無効）
       final isSubscribing = entitlement.isActive;
       print("Subscription status for $entitlementId: $isSubscribing");
+
+      // サブスクリプション状態を返す
       return isSubscribing;
     } catch (e) {
       // エラーハンドリング

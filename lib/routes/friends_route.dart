@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -7,17 +9,23 @@ import 'package:youniyou/chats.dart';
 import 'package:youniyou/main.dart';
 import 'package:youniyou/plan.dart';
 import 'package:youniyou/claude.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class FriendModal extends HookConsumerWidget {
   final String? friendId;
   final String? friendName;
   final int? friendIcon;
+  final bool isSubscribed;
+  final String? friendImageUrl; // 追加
 
   const FriendModal({
     Key? key,
     this.friendId,
     this.friendName,
     this.friendIcon,
+    this.isSubscribed = false,
+    this.friendImageUrl, // 追加
   }) : super(key: key);
 
   @override
@@ -25,6 +33,44 @@ class FriendModal extends HookConsumerWidget {
     final user = FirebaseAuth.instance.currentUser;
     final _controller = useTextEditingController(text: friendName ?? '');
     final iconColor = useState(friendIcon != null ? Color(friendIcon!) : Colors.blue);
+    final imageUrl = useState<String?>(friendImageUrl); // 初期値を設定
+
+    Future<void> _pickImage() async {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+      if (pickedFile != null) {
+        final file = File(pickedFile.path);
+        final storageRef = FirebaseStorage.instance.ref().child('friend_icons/${user?.uid}/${friendId ?? DateTime.now().millisecondsSinceEpoch}.jpg');
+
+        final uploadTask = storageRef.putFile(file);
+        final snapshot = await uploadTask.whenComplete(() => {});
+        final downloadUrl = await snapshot.ref.getDownloadURL();
+
+        imageUrl.value = downloadUrl;
+      }
+    }
+
+    void _showSubscriptionDialog() {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('有料会員専用機能'),
+            content: Text('有料会員のみ友達のアイコンに画像を指定できます。'),
+            actions: [
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
 
     return Padding(
       padding: EdgeInsets.only(
@@ -50,6 +96,12 @@ class FriendModal extends HookConsumerWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: iconColor.value,
+                      image: imageUrl.value != null
+                          ? DecorationImage(
+                              image: NetworkImage(imageUrl.value!),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
                     ),
                   ),
                   ElevatedButton(
@@ -66,6 +118,7 @@ class FriendModal extends HookConsumerWidget {
                                     child: CircleAvatar(backgroundColor: Colors.blue),
                                     onTap: () {
                                       iconColor.value = Colors.blue;
+                                      imageUrl.value = null; // 色選択時に画像をクリア
                                       Navigator.of(context).pop();
                                     },
                                   ),
@@ -73,6 +126,7 @@ class FriendModal extends HookConsumerWidget {
                                     child: CircleAvatar(backgroundColor: Colors.red),
                                     onTap: () {
                                       iconColor.value = Colors.red;
+                                      imageUrl.value = null; // 色選択時に画像をクリア
                                       Navigator.of(context).pop();
                                     },
                                   ),
@@ -80,6 +134,7 @@ class FriendModal extends HookConsumerWidget {
                                     child: CircleAvatar(backgroundColor: Colors.yellow),
                                     onTap: () {
                                       iconColor.value = Colors.yellow;
+                                      imageUrl.value = null; // 色選択時に画像をクリア
                                       Navigator.of(context).pop();
                                     },
                                   ),
@@ -87,6 +142,7 @@ class FriendModal extends HookConsumerWidget {
                                     child: CircleAvatar(backgroundColor: Colors.green),
                                     onTap: () {
                                       iconColor.value = Colors.green;
+                                      imageUrl.value = null; // 色選択時に画像をクリア
                                       Navigator.of(context).pop();
                                     },
                                   ),
@@ -94,6 +150,7 @@ class FriendModal extends HookConsumerWidget {
                                     child: CircleAvatar(backgroundColor: Colors.orange),
                                     onTap: () {
                                       iconColor.value = Colors.orange;
+                                      imageUrl.value = null; // 色選択時に画像をクリア
                                       Navigator.of(context).pop();
                                     },
                                   ),
@@ -101,6 +158,7 @@ class FriendModal extends HookConsumerWidget {
                                     child: CircleAvatar(backgroundColor: Colors.pink),
                                     onTap: () {
                                       iconColor.value = Colors.pink;
+                                      imageUrl.value = null; // 色選択時に画像をクリア
                                       Navigator.of(context).pop();
                                     },
                                   ),
@@ -111,7 +169,11 @@ class FriendModal extends HookConsumerWidget {
                         },
                       );
                     },
-                    child: Text('選択'),
+                    child: Text('色アイコン'),
+                  ),
+                  ElevatedButton(
+                    onPressed: isSubscribed ? _pickImage : _showSubscriptionDialog, // 有料会員のみ画像を選択できる
+                    child: Text('画像アイコン'),
                   ),
                 ],
               ),
@@ -140,12 +202,14 @@ class FriendModal extends HookConsumerWidget {
                         await FirebaseFirestore.instance.collection('friends').doc(friendId).update({
                           'name': _controller.text,
                           'icon': iconColor.value.value,
+                          'image_url': imageUrl.value, // 画像URLを保存
                         });
                       } else {
                         // 新しい友達を追加
                         await FirebaseFirestore.instance.collection('friends').add({
                           'name': _controller.text,
                           'icon': iconColor.value.value,
+                          'image_url': imageUrl.value, // 画像URLを保存
                           'user_id': user?.uid,
                         });
                       }
@@ -257,7 +321,7 @@ class Friends extends HookConsumerWidget {
               context: context,
               isScrollControlled: true,
               builder: (BuildContext context) {
-                return FriendModal();
+                return FriendModal(isSubscribed: isSubscribed); // 有料会員情報を渡す
               },
             );
           },
@@ -281,7 +345,7 @@ class Friends extends HookConsumerWidget {
                 context: context,
                 isScrollControlled: true,
                 builder: (BuildContext context) {
-                  return FriendModal();
+                  return FriendModal(isSubscribed: isSubscribed); // 有料会員情報を渡す
                 },
               );
             },
@@ -319,6 +383,8 @@ class Friends extends HookConsumerWidget {
                             friendId: document.id,
                             friendName: data['name'],
                             friendIcon: data['icon'],
+                            isSubscribed: isSubscribed, // 有料会員情報を渡す
+                            friendImageUrl: data['image_url'], // 追加
                           );
                         },
                       );
@@ -329,6 +395,12 @@ class Friends extends HookConsumerWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Color(data['icon']),
+                        image: data['image_url'] != null
+                            ? DecorationImage(
+                                image: NetworkImage(data['image_url']),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
                       ),
                     ),
                   ),
