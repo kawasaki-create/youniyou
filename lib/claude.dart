@@ -3,9 +3,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:anthropic_dart/anthropic_dart.dart';
 import 'package:intl/intl.dart';
+import 'package:youniyou/main.dart';
 import 'env.dart'; // ここでenv.dartをインポート
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:youniyou/admobHelper.dart';
 
 class Claude extends HookConsumerWidget {
   final String friendId;
@@ -22,6 +24,13 @@ class Claude extends HookConsumerWidget {
     final isLoading = useState(false); // ローディング状態を追加
     final isChatting = useState(false); // チャット画面のフラグ
     final analysisResult = useState(''); //分析結果
+
+    final isSubscribed = ref.watch(subscriptionProvider);
+
+    // Admobの初期化
+    AdmobHelper admobHelper = AdmobHelper();
+    AdmobHelper.initialization(); // Admobの初期化
+    admobHelper.loadRewardedAd();
 
     // チャット画面のウィジェット
     Widget chatScreen() {
@@ -102,6 +111,9 @@ class Claude extends HookConsumerWidget {
                 SizedBox(height: MediaQuery.of(context).size.height * 0.35), // 上部にスペースを追加
                 ElevatedButton(
                   onPressed: () async {
+                    if (!isSubscribed) {
+                      await admobHelper.showRewardedAd();
+                    }
                     isLoading.value = true; // ローディングを開始
                     final plans = await _getPlan();
                     final chats = await _getChat();
@@ -117,6 +129,16 @@ class Claude extends HookConsumerWidget {
                   },
                   child: Text('分析スタート'),
                 ),
+                // TextButton(
+                //   onPressed: () {
+                //     try {
+                //       admobHelper.showRewardedAd();
+                //     } catch (e) {
+                //       debugRew.value = e.toString();
+                //     }
+                //   },
+                //   child: Text('テスト動画広告')),
+                if (!isSubscribed) Text('※無料会員の場合、先に動画広告が表示されます。'),
                 SizedBox(height: 20), // ボタンとローディングインジケータの間にスペースを追加
                 isLoading.value
                     ? CircularProgressIndicator() // ローディング中に表示

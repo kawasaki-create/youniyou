@@ -158,56 +158,51 @@ class AdmobHelper implements RewardedAdLoadCallback, FullScreenContentCallback {
   //リワード広告を初期化する処理
   RewardedAd? _rewardedAd; // 広告オブジェクト
 
-  // 広告のロード処理
+  // デバッグ用リワードID
+  var testRewardedId = Platform.isAndroid ? 'ca-app-pub-3940256099942544/5224354917' : 'ca-app-pub-3940256099942544/1712485313';
+
+  // 本番用リワードID
+  var rewardedId = Platform.isAndroid ? 'ca-app-pub-1568606156833955/8340635114' : 'ca-app-pub-1568606156833955/9785578725';
+
+  // リワード広告をロードする
   void loadRewardedAd() {
     RewardedAd.load(
-      // テスト
-      adUnitId: Platform.isAndroid ? 'ca-app-pub-3940256099942544/5224354917' : "ca-app-pub-3940256099942544/1712485313",
-      // 本番(iOSでは設定しない)
-      // adUnitId: Platform.isAndroid
-      //     ? 'ca-app-pub-1568606156833955/7823645898'
-      //     : "ca-app-pub-3940256099942544/1712485313",
-
+      adUnitId: env == 'development' ? testRewardedId : rewardedId,
       request: AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded: (ad) {
-          _rewardedAd = ad; // 広告オブジェクトを保存
+        onAdLoaded: (RewardedAd ad) {
+          _rewardedAd = ad;
+          print('RewardedAd loaded.');
+          _rewardedAd?.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (RewardedAd ad) {
+              print('RewardedAd dismissed.');
+              ad.dispose();
+              loadRewardedAd();
+            },
+            onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
+              print('RewardedAd failed to show: $error');
+              ad.dispose();
+              loadRewardedAd();
+            },
+          );
         },
-        onAdFailedToLoad: (error) {
-          print('Ad failed to load: $error');
+        onAdFailedToLoad: (LoadAdError error) {
+          print('RewardedAd failed to load: $error');
         },
       ),
     );
   }
 
-  // 広告の表示処理
-  void showRewardedAd() {
-    // 広告が表示されたときの処理
-    _rewardedAd?.fullScreenContentCallback = FullScreenContentCallback(
-      onAdShowedFullScreenContent: (ad) {
-        print('Ad showed fullscreen content.');
-      },
-      // 広告が閉じられたときの処理
-      onAdDismissedFullScreenContent: (ad) {
-        print('Ad dismissed fullscreen content.');
-        ad.dispose();
-        loadRewardedAd();
-      },
-      onAdFailedToShowFullScreenContent: (ad, error) {
-        print('Ad failed to show fullscreen content: $error');
-        ad.dispose();
-        loadRewardedAd();
-      },
-    );
-
-    _rewardedAd?.setImmersiveMode(true);
-    _rewardedAd?.show(
-      // リワード広告再生時の処理
-      onUserEarnedReward: (ad, reward) {
+  // リワード広告を表示する
+  showRewardedAd() {
+    if (_rewardedAd != null) {
+      _rewardedAd?.show(onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
         print('User earned reward: ${reward.amount} ${reward.type}');
         // TODO: 報酬を与える処理を追加
-      },
-    );
+      });
+    } else {
+      print('Warning: attempt to show rewarded ad before loaded.');
+    }
   }
 
   // リワード広告のロードが成功した場合のコールバック

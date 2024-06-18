@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:youniyou/chats.dart';
+import 'package:youniyou/invite_ai.dart';
 import 'package:youniyou/main.dart';
 import 'package:youniyou/plan.dart';
 import 'package:youniyou/claude.dart';
@@ -96,7 +97,7 @@ class FriendModal extends HookConsumerWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: iconColor.value,
-                      image: imageUrl.value != null
+                      image: imageUrl.value != null && isSubscribed
                           ? DecorationImage(
                               image: NetworkImage(imageUrl.value!),
                               fit: BoxFit.cover,
@@ -335,6 +336,18 @@ class Friends extends HookConsumerWidget {
         title: Text('友達'),
         backgroundColor: Colors.cyan[100],
         actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => InviteAi(),
+                ),
+              );
+            },
+            child: Text('おさそいAIチャット'),
+          ),
+          Text(' '),
           IconButton(
             icon: Icon(Icons.person_add_alt_1_rounded),
             onPressed: () async {
@@ -395,7 +408,7 @@ class Friends extends HookConsumerWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Color(data['icon']),
-                        image: data['image_url'] != null
+                        image: data['image_url'] != null && isSubscribed
                             ? DecorationImage(
                                 image: NetworkImage(data['image_url']),
                                 fit: BoxFit.cover,
@@ -469,6 +482,7 @@ class Friends extends HookConsumerWidget {
                         onPressed: () {
                           showDialog(
                             context: context,
+                            barrierDismissible: false,
                             builder: (BuildContext context) {
                               return AlertDialog(
                                 title: Text('友達の削除'),
