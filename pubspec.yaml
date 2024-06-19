@@ -66,6 +66,7 @@ dependencies:
   google_mobile_ads: ^5.1.0
   purchases_flutter: ^6.29.2
   font_awesome_flutter:
+  in_app_review: ^2.0.9
 
 dev_dependencies:
   flutter_test:

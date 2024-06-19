@@ -12,6 +12,7 @@ import 'package:youniyou/plan.dart';
 import 'package:youniyou/claude.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:youniyou/reviewHelper.dart';
 
 class FriendModal extends HookConsumerWidget {
   final String? friendId;
@@ -28,6 +29,51 @@ class FriendModal extends HookConsumerWidget {
     this.isSubscribed = false,
     this.friendImageUrl, // 追加
   }) : super(key: key);
+
+  void _showReviewDialog(BuildContext parentContext) {
+    showDialog<void>(
+      context: parentContext,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('このアプリには満足していただいてますか？'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("よろしければ感想をお聞かせください🙏"),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton(
+                    child: Text('不満🤔'),
+                    onPressed: () async {
+                      Navigator.of(context).pop();
+                      // ダイアログが閉じた後にスナックバーを表示
+                      Future.delayed(Duration.zero, () {
+                        ScaffoldMessenger.of(parentContext).showSnackBar(
+                          SnackBar(
+                            content: Text('ありがとうございます。良いアプリになるよう努めます。'),
+                          ),
+                        );
+                      });
+                    },
+                  ),
+                  TextButton(
+                    child: Text('満足😊✨'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      DrawerHelper.launchStoreReview(parentContext);
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -71,6 +117,10 @@ class FriendModal extends HookConsumerWidget {
           );
         },
       );
+    }
+
+    void _showReviewDialogWrapper() {
+      _showReviewDialog(context);
     }
 
     return Padding(
@@ -213,6 +263,14 @@ class FriendModal extends HookConsumerWidget {
                           'image_url': imageUrl.value, // 画像URLを保存
                           'user_id': user?.uid,
                         });
+
+                        // 友達の数をチェックして2人目の場合にレビューを表示
+                        final friendsSnapshot = await FirebaseFirestore.instance.collection('friends').where('user_id', isEqualTo: user?.uid).get();
+                        if (friendsSnapshot.docs.length == 2) {
+                          Navigator.pop(context);
+                          _showReviewDialogWrapper(); // モーダルを閉じた後にレビューを表示
+                          return; // ここで処理を終了
+                        }
                       }
                       Navigator.pop(context);
                     },

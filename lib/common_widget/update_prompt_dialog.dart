@@ -15,7 +15,7 @@ class UpdatePromptDialog extends ConsumerWidget {
   final UpdateRequestType? updateRequestType;
 
   // Androidアプリのパッケージ名
-  final String androidAppId = "com.pretravel.kawasaki_create.pre_travel_mobile&hl=ja-JP";
+  final String androidAppId = "com.kawasakicreate.youniyou.youniyou&hl=ja-JP";
   // iOSアプリのApp Store ID
   final String iOSAppId = "6503354191";
 
