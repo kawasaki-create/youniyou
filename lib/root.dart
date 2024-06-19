@@ -314,56 +314,51 @@ class RootWidgets extends HookConsumerWidget {
                                           ),
                                         ),
                                         Text(''),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Text('有料会員登録する　　'),
-                                            ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: Colors.grey,
-                                                foregroundColor: Colors.white,
-                                                elevation: 8,
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.circular(10),
-                                                ),
-                                              ),
-                                              onPressed: () async {
-                                                final inAppPurchaseManager = ref.read(inAppPurchaseManagerProvider);
-
-                                                /// 購入アイテム（Package）取得
-                                                final offerings = await Purchases.getOfferings();
-
-                                                try {
-                                                  // 購入処理
-                                                  await RevenueCat().purchase();
-
-                                                  // 購入完了メッセージを表示
-                                                  await ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(
-                                                      content: Text('ご購入ありがとうございます。有料会員登録が完了しました😊'),
-                                                    ),
-                                                  );
-                                                  await Future.delayed(Duration(seconds: 1));
-                                                  // ログイン画面に遷移
-                                                  await Navigator.pushAndRemoveUntil(
-                                                    context,
-                                                    MaterialPageRoute(builder: (context) => MyApp()),
-                                                    (_) => false,
-                                                  );
-                                                } on PlatformException catch (e) {
-                                                  // エラーハンドリング
-                                                  await ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(
-                                                      content: Text('購入処理に失敗しました🥲'),
-                                                    ),
-                                                  );
-                                                  await Future.delayed(Duration(seconds: 1));
-                                                  Navigator.of(context).pop();
-                                                }
-                                              },
-                                              child: Text('1ヶ月：¥300'),
+                                        Text('有料会員登録する(初回1週間無料✨)　　'),
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.blue,
+                                            foregroundColor: Colors.white,
+                                            elevation: 8,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(10),
                                             ),
-                                          ],
+                                          ),
+                                          onPressed: () async {
+                                            final inAppPurchaseManager = ref.read(inAppPurchaseManagerProvider);
+
+                                            /// 購入アイテム（Package）取得
+                                            final offerings = await Purchases.getOfferings();
+
+                                            try {
+                                              // 購入処理
+                                              await RevenueCat().purchase();
+
+                                              // 購入完了メッセージを表示
+                                              await ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text('ご購入ありがとうございます。有料会員登録が完了しました😊'),
+                                                ),
+                                              );
+                                              await Future.delayed(Duration(seconds: 1));
+                                              // ログイン画面に遷移
+                                              await Navigator.pushAndRemoveUntil(
+                                                context,
+                                                MaterialPageRoute(builder: (context) => MyApp()),
+                                                (_) => false,
+                                              );
+                                            } on PlatformException catch (e) {
+                                              // エラーハンドリング
+                                              await ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text('購入処理に失敗しました🥲'),
+                                                ),
+                                              );
+                                              await Future.delayed(Duration(seconds: 1));
+                                              Navigator.of(context).pop();
+                                            }
+                                          },
+                                          child: Text('1ヶ月：¥300'),
                                         ),
                                         Text(''),
                                         ElevatedButton(
