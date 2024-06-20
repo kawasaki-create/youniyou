@@ -568,6 +568,15 @@ class Friends extends HookConsumerWidget {
                                         final storageRef = FirebaseStorage.instance.refFromURL(imageUrl);
                                         await storageRef.delete();
                                       }
+                                      // chatsディレクトリ内の関連ディレクトリを削除
+                                      final chatsRef = FirebaseStorage.instance.ref().child('chats/${document.id}');
+                                      final ListResult listResult = await chatsRef.listAll();
+                                      for (var item in listResult.items) {
+                                        await item.delete();
+                                      }
+                                      for (var prefix in listResult.prefixes) {
+                                        await prefix.delete();
+                                      }
                                       // 友達を削除
                                       await FirebaseFirestore.instance.collection('friends').doc(document.id).delete();
                                       Navigator.of(context).pop();
