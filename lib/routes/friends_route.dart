@@ -554,9 +554,22 @@ class Friends extends HookConsumerWidget {
                                   ),
                                   TextButton(
                                     child: Text('OK'),
-                                    onPressed: () {
+                                    onPressed: () async {
+                                      // 友達に紐づくメモを削除
+                                      await FirebaseFirestore.instance.collection('chats').doc(document.id).delete();
+                                      // 友達に紐づく予定を削除
+                                      final todoQuerySnapshot = await FirebaseFirestore.instance.collection('todo').where('friendId', isEqualTo: document.id).get();
+                                      for (var doc in todoQuerySnapshot.docs) {
+                                        await doc.reference.delete();
+                                      }
+                                      // 画像を削除
+                                      final imageUrl = data['image_url'];
+                                      if (imageUrl != null) {
+                                        final storageRef = FirebaseStorage.instance.refFromURL(imageUrl);
+                                        await storageRef.delete();
+                                      }
                                       // 友達を削除
-                                      FirebaseFirestore.instance.collection('friends').doc(document.id).delete();
+                                      await FirebaseFirestore.instance.collection('friends').doc(document.id).delete();
                                       Navigator.of(context).pop();
                                     },
                                   ),
