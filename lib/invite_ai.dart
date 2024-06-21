@@ -22,6 +22,11 @@ class InviteAi extends HookConsumerWidget {
     final initialPrompt = useState<String>('');
     final isSubscribed = ref.watch(subscriptionProvider);
 
+    String summarizeMessages(List<Map<String, dynamic>> messages) {
+      // 簡単な要約：過去のメッセージをテキストで連結
+      return messages.map((message) => message['text'] as String).join(' ');
+    }
+
     AdmobHelper admobHelper = AdmobHelper();
     AdmobHelper.initialization(); // Admobの初期化
     admobHelper.loadRewardedAd();
@@ -109,16 +114,25 @@ class InviteAi extends HookConsumerWidget {
         if (!isSubscribed) {
           admobHelper.showRewardedAd();
         }
+
         messages.value = [
           ...messages.value,
           {'text': text, 'isMe': true},
         ];
-        talk(initialPrompt.value + '\n' + text).then((response) {
+
+        // メッセージの要約を作成
+        final summary = summarizeMessages(messages.value);
+
+        // 要約と現在のメッセージを含めたプロンプトを作成
+        final prompt = initialPrompt.value + '\n要約: ' + summary + '\nユーザーのメッセージ: ' + text;
+
+        talk(prompt).then((response) {
           messages.value = [
             ...messages.value,
             {'text': response, 'isMe': false},
           ];
         });
+
         textController.clear();
         FocusScope.of(context).unfocus(); // キーボードのフォーカスをオフにする
       }
